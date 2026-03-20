@@ -40,7 +40,7 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
               Tienda
             </Link>
             <Link
-              to="/"
+              to="/nosotros"
               className="font-sans text-sm text-stone-600 hover:text-clay-600 transition-colors"
             >
               Nosotros
@@ -121,7 +121,7 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
             Tienda
           </Link>
           <Link
-            to="/"
+            to="/nosotros"
             className="block py-2 font-sans text-sm text-stone-600 hover:text-clay-600 transition-colors"
             onClick={() => setMenuOpen(false)}
           >

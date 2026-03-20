@@ -77,11 +77,41 @@ export default function Cart({ isOpen, onClose }: CartProps) {
     return Object.keys(errs).length === 0;
   };
 
-  const handleCheckout = (e: React.FormEvent) => {
+  const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
+
+    // Open WhatsApp
     const msg = buildWhatsAppMessage(items, totalPrice, form);
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
+
+    // Save order to database (non-blocking)
+    try {
+      await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          customerName: form.name,
+          customerPhone: form.phone,
+          customerEmail: form.email || undefined,
+          customerAddress: form.address || undefined,
+          notes: form.notes || undefined,
+          total: totalPrice,
+          items: items.map(item => ({
+            productId: item.id,
+            productName: item.name,
+            productImg: item.image,
+            price: item.price,
+            quantity: item.quantity,
+            subtotal: item.price * item.quantity,
+          })),
+        }),
+      });
+    } catch {
+      // Silently fail - WhatsApp already opened
+    }
+
     setStep('success');
   };
 

@@ -90,6 +90,37 @@ export const apiService = {
     const response = await api.get<MeResponse>('/auth/me');
     return response.data;
   },
+
+  // Orders
+  async createOrder(data: {
+    customerName: string;
+    customerPhone: string;
+    customerEmail?: string;
+    customerAddress?: string;
+    notes?: string;
+    total: number;
+    items: Array<{
+      productId?: number;
+      productName: string;
+      productImg: string;
+      price: number;
+      quantity: number;
+      subtotal: number;
+    }>;
+  }) {
+    const response = await api.post('/orders', data);
+    return response.data;
+  },
+
+  async getOrders() {
+    const response = await api.get('/orders');
+    return response.data as { orders: import('../types').Order[] };
+  },
+
+  async updateOrderStatus(id: number, status: string) {
+    const response = await api.patch(`/orders/${id}/status`, { status });
+    return response.data;
+  },
 };
 
 export default api;

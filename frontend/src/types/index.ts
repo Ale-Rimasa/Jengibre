@@ -27,3 +27,30 @@ export type Category =
   | 'bowls'
   | 'jarrones'
   | 'set_vajilla';
+
+export interface OrderItem {
+  id: number;
+  orderId: number;
+  productId?: number;
+  productName: string;
+  productImg: string;
+  price: number;
+  quantity: number;
+  subtotal: number;
+}
+
+export type OrderStatus = 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
+
+export interface Order {
+  id: number;
+  customerName: string;
+  customerPhone: string;
+  customerEmail?: string;
+  customerAddress?: string;
+  notes?: string;
+  total: number;
+  status: OrderStatus;
+  items: OrderItem[];
+  createdAt: string;
+  updatedAt: string;
+}

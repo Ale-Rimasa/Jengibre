@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Product, Category } from '../types';
+import { Product, Category, Order } from '../types';
 import { apiService, CreateProductData } from '../services/api';
 
 type ToastType = 'success' | 'error';
@@ -45,6 +45,8 @@ export default function Admin() {
   const [isLoading, setIsLoading] = useState(true);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [toastCounter, setToastCounter] = useState(0);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [activeTab, setActiveTab] = useState<'products' | 'orders'>('products');
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
@@ -75,6 +77,22 @@ export default function Admin() {
       loadProducts();
     }
   }, [isAuthenticated]);
+
+  // Load orders
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadOrders();
+    }
+  }, [isAuthenticated]);
+
+  const loadOrders = async () => {
+    try {
+      const data = await apiService.getOrders();
+      setOrders(data.orders);
+    } catch {
+      // Silently fail
+    }
+  };
 
   const loadProducts = async () => {
     setIsLoading(true);
@@ -277,139 +295,247 @@ export default function Admin() {
       <main className="max-w-7xl mx-auto px-4 sm:px-8 py-8">
         <div className="flex items-center justify-between mb-6">
           <h2 className="font-serif text-2xl font-semibold text-bark-800">
-            Productos
+            {activeTab === 'products' ? 'Productos' : 'Órdenes'}
           </h2>
+          {activeTab === 'products' && (
+            <button
+              onClick={openCreateModal}
+              className="flex items-center gap-2 bg-clay-500 hover:bg-clay-600 text-white font-sans text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-clay-400"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Nuevo producto
+            </button>
+          )}
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-1 mb-6 bg-stone-100 p-1 rounded-xl w-fit">
           <button
-            onClick={openCreateModal}
-            className="flex items-center gap-2 bg-clay-500 hover:bg-clay-600 text-white font-sans text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-clay-400"
+            onClick={() => setActiveTab('products')}
+            className={`font-sans text-sm font-medium px-4 py-2 rounded-lg transition-colors ${
+              activeTab === 'products'
+                ? 'bg-white text-bark-800 shadow-sm'
+                : 'text-stone-500 hover:text-bark-700'
+            }`}
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Nuevo producto
+            Productos
+          </button>
+          <button
+            onClick={() => setActiveTab('orders')}
+            className={`font-sans text-sm font-medium px-4 py-2 rounded-lg transition-colors ${
+              activeTab === 'orders'
+                ? 'bg-white text-bark-800 shadow-sm'
+                : 'text-stone-500 hover:text-bark-700'
+            }`}
+          >
+            Órdenes
+            {orders.filter(o => o.status === 'pending').length > 0 && (
+              <span className="ml-1.5 bg-clay-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5">
+                {orders.filter(o => o.status === 'pending').length}
+              </span>
+            )}
           </button>
         </div>
 
         {/* Products table */}
-        {isLoading ? (
-          <div className="flex justify-center py-20">
-            <div className="w-8 h-8 border-2 border-clay-500 border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : (
+        {activeTab === 'products' && (
+          isLoading ? (
+            <div className="flex justify-center py-20">
+              <div className="w-8 h-8 border-2 border-clay-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden">
+              {products.length === 0 ? (
+                <div className="text-center py-16">
+                  <p className="font-serif text-lg text-stone-400">
+                    No hay productos. Creá uno nuevo.
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-stone-100 bg-cream-50">
+                        <th className="text-left font-sans text-xs font-semibold text-stone-500 uppercase tracking-wider px-5 py-3">
+                          Producto
+                        </th>
+                        <th className="text-left font-sans text-xs font-semibold text-stone-500 uppercase tracking-wider px-5 py-3 hidden sm:table-cell">
+                          Categoría
+                        </th>
+                        <th className="text-left font-sans text-xs font-semibold text-stone-500 uppercase tracking-wider px-5 py-3">
+                          Precio
+                        </th>
+                        <th className="text-left font-sans text-xs font-semibold text-stone-500 uppercase tracking-wider px-5 py-3 hidden md:table-cell">
+                          Stock
+                        </th>
+                        <th className="text-left font-sans text-xs font-semibold text-stone-500 uppercase tracking-wider px-5 py-3 hidden lg:table-cell">
+                          Estado
+                        </th>
+                        <th className="px-5 py-3" />
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {products.map((product) => (
+                        <tr
+                          key={product.id}
+                          className="border-b border-stone-50 hover:bg-cream-50 transition-colors"
+                        >
+                          <td className="px-5 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-lg bg-cream-100 overflow-hidden flex-shrink-0">
+                                <img
+                                  src={product.image}
+                                  alt=""
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                  }}
+                                />
+                              </div>
+                              <div>
+                                <p className="font-sans text-sm font-medium text-bark-800 line-clamp-1">
+                                  {product.name}
+                                </p>
+                                <p className="font-sans text-xs text-stone-400 line-clamp-1 hidden sm:block">
+                                  {product.description.substring(0, 50)}...
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-5 py-4 hidden sm:table-cell">
+                            <span className="font-sans text-xs text-stone-600 bg-stone-100 px-2 py-0.5 rounded-full">
+                              {product.category}
+                            </span>
+                          </td>
+                          <td className="px-5 py-4">
+                            <span className="font-serif text-sm font-medium text-clay-600">
+                              {formatPrice(product.price)}
+                            </span>
+                          </td>
+                          <td className="px-5 py-4 hidden md:table-cell">
+                            <span
+                              className={`font-sans text-sm ${
+                                product.stock === 0
+                                  ? 'text-red-500'
+                                  : product.stock <= 3
+                                  ? 'text-amber-600'
+                                  : 'text-stone-600'
+                              }`}
+                            >
+                              {product.stock}
+                            </span>
+                          </td>
+                          <td className="px-5 py-4 hidden lg:table-cell">
+                            <span
+                              className={`inline-flex items-center gap-1 font-sans text-xs px-2 py-0.5 rounded-full ${
+                                product.active
+                                  ? 'bg-green-50 text-green-700'
+                                  : 'bg-stone-100 text-stone-500'
+                              }`}
+                            >
+                              <span className={`w-1.5 h-1.5 rounded-full ${product.active ? 'bg-green-500' : 'bg-stone-400'}`} />
+                              {product.active ? 'Activo' : 'Inactivo'}
+                            </span>
+                          </td>
+                          <td className="px-5 py-4">
+                            <div className="flex items-center gap-2 justify-end">
+                              <button
+                                onClick={() => openEditModal(product)}
+                                className="text-stone-400 hover:text-clay-600 transition-colors focus:outline-none"
+                                aria-label={`Editar ${product.name}`}
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                              </button>
+                              <button
+                                onClick={() => setDeleteId(product.id)}
+                                className="text-stone-400 hover:text-red-500 transition-colors focus:outline-none"
+                                aria-label={`Eliminar ${product.name}`}
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )
+        )}
+
+        {/* Orders table */}
+        {activeTab === 'orders' && (
           <div className="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden">
-            {products.length === 0 ? (
+            {orders.length === 0 ? (
               <div className="text-center py-16">
-                <p className="font-serif text-lg text-stone-400">
-                  No hay productos. Creá uno nuevo.
-                </p>
+                <p className="font-serif text-lg text-stone-400">No hay órdenes aún.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-stone-100 bg-cream-50">
-                      <th className="text-left font-sans text-xs font-semibold text-stone-500 uppercase tracking-wider px-5 py-3">
-                        Producto
-                      </th>
-                      <th className="text-left font-sans text-xs font-semibold text-stone-500 uppercase tracking-wider px-5 py-3 hidden sm:table-cell">
-                        Categoría
-                      </th>
-                      <th className="text-left font-sans text-xs font-semibold text-stone-500 uppercase tracking-wider px-5 py-3">
-                        Precio
-                      </th>
-                      <th className="text-left font-sans text-xs font-semibold text-stone-500 uppercase tracking-wider px-5 py-3 hidden md:table-cell">
-                        Stock
-                      </th>
-                      <th className="text-left font-sans text-xs font-semibold text-stone-500 uppercase tracking-wider px-5 py-3 hidden lg:table-cell">
-                        Estado
-                      </th>
-                      <th className="px-5 py-3" />
+                      <th className="text-left font-sans text-xs font-semibold text-stone-500 uppercase tracking-wider px-5 py-3">#</th>
+                      <th className="text-left font-sans text-xs font-semibold text-stone-500 uppercase tracking-wider px-5 py-3">Cliente</th>
+                      <th className="text-left font-sans text-xs font-semibold text-stone-500 uppercase tracking-wider px-5 py-3 hidden sm:table-cell">Productos</th>
+                      <th className="text-left font-sans text-xs font-semibold text-stone-500 uppercase tracking-wider px-5 py-3">Total</th>
+                      <th className="text-left font-sans text-xs font-semibold text-stone-500 uppercase tracking-wider px-5 py-3">Estado</th>
+                      <th className="text-left font-sans text-xs font-semibold text-stone-500 uppercase tracking-wider px-5 py-3 hidden md:table-cell">Fecha</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {products.map((product) => (
-                      <tr
-                        key={product.id}
-                        className="border-b border-stone-50 hover:bg-cream-50 transition-colors"
-                      >
+                    {orders.map((order) => (
+                      <tr key={order.id} className="border-b border-stone-50 hover:bg-cream-50 transition-colors">
+                        <td className="px-5 py-4 font-sans text-sm text-stone-500">#{order.id}</td>
                         <td className="px-5 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-cream-100 overflow-hidden flex-shrink-0">
-                              <img
-                                src={product.image}
-                                alt=""
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                  (e.target as HTMLImageElement).style.display = 'none';
-                                }}
-                              />
-                            </div>
-                            <div>
-                              <p className="font-sans text-sm font-medium text-bark-800 line-clamp-1">
-                                {product.name}
-                              </p>
-                              <p className="font-sans text-xs text-stone-400 line-clamp-1 hidden sm:block">
-                                {product.description.substring(0, 50)}...
-                              </p>
-                            </div>
-                          </div>
+                          <p className="font-sans text-sm font-medium text-bark-800">{order.customerName}</p>
+                          <p className="font-sans text-xs text-stone-400">{order.customerPhone}</p>
                         </td>
                         <td className="px-5 py-4 hidden sm:table-cell">
-                          <span className="font-sans text-xs text-stone-600 bg-stone-100 px-2 py-0.5 rounded-full">
-                            {product.category}
-                          </span>
+                          <p className="font-sans text-xs text-stone-600">
+                            {order.items.map(i => `${i.productName} x${i.quantity}`).join(', ')}
+                          </p>
                         </td>
                         <td className="px-5 py-4">
-                          <span className="font-serif text-sm font-medium text-clay-600">
-                            {formatPrice(product.price)}
-                          </span>
-                        </td>
-                        <td className="px-5 py-4 hidden md:table-cell">
-                          <span
-                            className={`font-sans text-sm ${
-                              product.stock === 0
-                                ? 'text-red-500'
-                                : product.stock <= 3
-                                ? 'text-amber-600'
-                                : 'text-stone-600'
-                            }`}
-                          >
-                            {product.stock}
-                          </span>
-                        </td>
-                        <td className="px-5 py-4 hidden lg:table-cell">
-                          <span
-                            className={`inline-flex items-center gap-1 font-sans text-xs px-2 py-0.5 rounded-full ${
-                              product.active
-                                ? 'bg-green-50 text-green-700'
-                                : 'bg-stone-100 text-stone-500'
-                            }`}
-                          >
-                            <span className={`w-1.5 h-1.5 rounded-full ${product.active ? 'bg-green-500' : 'bg-stone-400'}`} />
-                            {product.active ? 'Activo' : 'Inactivo'}
-                          </span>
+                          <span className="font-serif text-sm font-semibold text-clay-600">{formatPrice(order.total)}</span>
                         </td>
                         <td className="px-5 py-4">
-                          <div className="flex items-center gap-2 justify-end">
-                            <button
-                              onClick={() => openEditModal(product)}
-                              className="text-stone-400 hover:text-clay-600 transition-colors focus:outline-none"
-                              aria-label={`Editar ${product.name}`}
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                              </svg>
-                            </button>
-                            <button
-                              onClick={() => setDeleteId(product.id)}
-                              className="text-stone-400 hover:text-red-500 transition-colors focus:outline-none"
-                              aria-label={`Eliminar ${product.name}`}
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                            </button>
-                          </div>
+                          <select
+                            value={order.status}
+                            onChange={async (e) => {
+                              try {
+                                await apiService.updateOrderStatus(order.id, e.target.value);
+                                setOrders(prev => prev.map(o => o.id === order.id ? { ...o, status: e.target.value as import('../types').OrderStatus } : o));
+                                showToast('Estado actualizado', 'success');
+                              } catch {
+                                showToast('Error al actualizar estado', 'error');
+                              }
+                            }}
+                            className={`font-sans text-xs px-2 py-1 rounded-lg border focus:outline-none focus:ring-1 focus:ring-clay-300 cursor-pointer ${
+                              order.status === 'pending' ? 'bg-amber-50 border-amber-200 text-amber-700' :
+                              order.status === 'confirmed' ? 'bg-blue-50 border-blue-200 text-blue-700' :
+                              order.status === 'shipped' ? 'bg-purple-50 border-purple-200 text-purple-700' :
+                              order.status === 'delivered' ? 'bg-green-50 border-green-200 text-green-700' :
+                              'bg-stone-50 border-stone-200 text-stone-600'
+                            }`}
+                          >
+                            <option value="pending">Pendiente</option>
+                            <option value="confirmed">Confirmado</option>
+                            <option value="shipped">Enviado</option>
+                            <option value="delivered">Entregado</option>
+                            <option value="cancelled">Cancelado</option>
+                          </select>
+                        </td>
+                        <td className="px-5 py-4 hidden md:table-cell font-sans text-xs text-stone-400">
+                          {new Date(order.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
                         </td>
                       </tr>
                     ))}

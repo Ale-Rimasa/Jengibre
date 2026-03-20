@@ -5,9 +5,11 @@ import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Cart from './components/Cart';
+import WhatsAppButton from './components/WhatsAppButton';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Admin from './pages/Admin';
+import AboutUs from './pages/AboutUs';
 
 function AppLayout() {
   const [cartOpen, setCartOpen] = useState(false);
@@ -16,11 +18,13 @@ function AppLayout() {
     <>
       <Navbar onCartOpen={() => setCartOpen(true)} />
       <Cart isOpen={cartOpen} onClose={() => setCartOpen(false)} />
+      <WhatsAppButton />
 
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/nosotros" element={<AboutUs />} />
       </Routes>
 
       <Footer />

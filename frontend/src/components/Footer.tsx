@@ -38,7 +38,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  to="/"
+                  to="/nosotros"
                   className="font-sans text-sm text-cream-300 hover:text-cream-100 transition-colors"
                 >
                   Sobre Nosotros
