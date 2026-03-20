@@ -58,6 +58,11 @@ export default function CartItem({ item }: CartItemProps) {
         <p className="font-sans text-xs text-stone-500 mt-0.5">
           {formatPrice(item.price)} c/u
         </p>
+        {item.preorder && (
+          <span className="inline-flex items-center gap-1 mt-1 font-sans text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+            ⏳ Encargo · ~25 días
+          </span>
+        )}
 
         {/* Quantity controls */}
         <div className="flex items-center gap-2 mt-2">

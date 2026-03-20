@@ -12,6 +12,7 @@ export interface Product {
 
 export interface CartItem extends Product {
   quantity: number;
+  preorder?: boolean; // true = producto por encargo (~25 días)
 }
 
 export interface User {

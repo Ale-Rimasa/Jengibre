@@ -24,12 +24,14 @@ function formatPrice(price: number): string {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(price);
 }
 
-function buildWhatsAppMessage(items: Array<{ name: string; quantity: number; price: number }>, total: number, form: CheckoutForm): string {
+function buildWhatsAppMessage(items: Array<{ name: string; quantity: number; price: number; preorder?: boolean }>, total: number, form: CheckoutForm): string {
+  const hasPreorder = items.some(i => i.preorder);
   const lines = [
     '🌿 *Hola! Quisiera hacer un pedido en Jengibre Cerámicas*', '',
     '🛍️ *Productos:*',
-    ...items.map(i => `• ${i.name} x${i.quantity} — ${formatPrice(i.price * i.quantity)}`),
+    ...items.map(i => `• ${i.name} x${i.quantity} — ${formatPrice(i.price * i.quantity)}${i.preorder ? ' _(encargo ~25 días)_' : ''}`),
     '', `💰 *Total: ${formatPrice(total)}*`, '',
+    ...(hasPreorder ? ['⏳ *Nota:* Uno o más productos son por encargo y pueden demorar hasta 25 días hábiles.', ''] : []),
     '👤 *Mis datos:*',
     `Nombre: ${form.name}`,
     `Teléfono: ${form.phone}`,
@@ -162,6 +164,14 @@ export default function Cart({ isOpen, onClose }: CartProps) {
             </div>
             {items.length > 0 && (
               <div className="border-t border-stone-200 px-5 py-5 space-y-4">
+                {items.some(i => i.preorder) && (
+                  <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5">
+                    <span className="text-amber-600 mt-0.5 flex-shrink-0">⏳</span>
+                    <p className="font-sans text-xs text-amber-800 leading-snug">
+                      Tu pedido incluye productos por encargo. El tiempo de entrega puede ser de hasta <strong>25 días hábiles</strong>.
+                    </p>
+                  </div>
+                )}
                 <div className="flex justify-between items-center">
                   <span className="font-sans text-sm text-stone-500">Subtotal</span>
                   <span className="font-serif text-base font-medium text-bark-800">{formatPrice(totalPrice)}</span>

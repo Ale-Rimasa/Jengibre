@@ -12,7 +12,7 @@ interface CartState {
 }
 
 type CartAction =
-  | { type: 'ADD_ITEM'; payload: Product }
+  | { type: 'ADD_ITEM'; payload: { product: Product; preorder?: boolean } }
   | { type: 'REMOVE_ITEM'; payload: number }
   | { type: 'UPDATE_QUANTITY'; payload: { id: number; quantity: number } }
   | { type: 'CLEAR_CART' }
@@ -22,7 +22,7 @@ interface CartContextValue {
   items: CartItem[];
   totalItems: number;
   totalPrice: number;
-  addToCart: (product: Product) => void;
+  addToCart: (product: Product, preorder?: boolean) => void;
   removeFromCart: (id: number) => void;
   updateQuantity: (id: number, quantity: number) => void;
   clearCart: () => void;
@@ -34,18 +34,19 @@ const CART_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 días
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case 'ADD_ITEM': {
-      const existing = state.items.find((item) => item.id === action.payload.id);
+      const { product, preorder } = action.payload;
+      const existing = state.items.find((item) => item.id === product.id);
       if (existing) {
         return {
           items: state.items.map((item) =>
-            item.id === action.payload.id
+            item.id === product.id
               ? { ...item, quantity: item.quantity + 1 }
               : item
           ),
         };
       }
       return {
-        items: [...state.items, { ...action.payload, quantity: 1 }],
+        items: [...state.items, { ...product, quantity: 1, preorder }],
       };
     }
 
@@ -122,8 +123,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     0
   );
 
-  const addToCart = (product: Product) =>
-    dispatch({ type: 'ADD_ITEM', payload: product });
+  const addToCart = (product: Product, preorder?: boolean) =>
+    dispatch({ type: 'ADD_ITEM', payload: { product, preorder } });
 
   const removeFromCart = (id: number) =>
     dispatch({ type: 'REMOVE_ITEM', payload: id });

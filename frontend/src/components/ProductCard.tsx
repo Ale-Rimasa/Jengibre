@@ -40,7 +40,14 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
-    addToCart(product);
+    addToCart(product, false);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1500);
+  };
+
+  const handlePreorder = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    addToCart(product, true);
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   };
@@ -52,9 +59,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   return (
     <article
       onClick={() => navigate(`/producto/${product.id}`)}
-      className={`group bg-white rounded-2xl overflow-hidden border border-stone-100 flex flex-col cursor-pointer
-        shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5
-        ${isOutOfStock ? 'opacity-70' : ''}`}
+      className="group bg-white rounded-2xl overflow-hidden border border-stone-100 flex flex-col cursor-pointer shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5"
     >
       {/* Image */}
       <div className="relative aspect-square bg-cream-100 overflow-hidden">
@@ -64,8 +69,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             alt={product.name}
             loading="lazy"
             onError={() => setImgError(true)}
-            className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105
-              ${isOutOfStock ? 'grayscale' : ''}`}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center text-stone-300">
@@ -89,8 +93,8 @@ export default function ProductCard({ product }: ProductCardProps) {
 
         {/* Badges */}
         {isOutOfStock && (
-          <span className="absolute top-2 left-2 bg-stone-700 text-white text-xs font-sans font-semibold px-2.5 py-1 rounded-full shadow-sm">
-            Agotado
+          <span className="absolute top-2 left-2 bg-amber-600 text-white text-xs font-sans font-semibold px-2.5 py-1 rounded-full shadow-sm">
+            Por encargo
           </span>
         )}
         {isLowStock && (
@@ -100,13 +104,11 @@ export default function ProductCard({ product }: ProductCardProps) {
         )}
 
         {/* Hover: "Ver detalle" pill */}
-        {!isOutOfStock && (
-          <div className="absolute inset-0 flex items-end justify-center pb-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-            <span className="bg-white/90 backdrop-blur-sm text-bark-700 text-xs font-sans font-semibold px-4 py-1.5 rounded-full shadow-sm border border-stone-100">
-              Ver detalle →
-            </span>
-          </div>
-        )}
+        <div className="absolute inset-0 flex items-end justify-center pb-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+          <span className="bg-white/90 backdrop-blur-sm text-bark-700 text-xs font-sans font-semibold px-4 py-1.5 rounded-full shadow-sm border border-stone-100">
+            Ver detalle →
+          </span>
+        </div>
       </div>
 
       {/* Content */}
@@ -126,25 +128,33 @@ export default function ProductCard({ product }: ProductCardProps) {
         </p>
 
         <div className="flex items-center justify-between mt-auto">
-          <span className="font-serif text-lg font-semibold text-clay-600">
-            {formatPrice(product.price)}
-          </span>
+          <div>
+            <span className="font-serif text-lg font-semibold text-clay-600">
+              {formatPrice(product.price)}
+            </span>
+            {isOutOfStock && (
+              <p className="font-sans text-xs text-amber-600 mt-0.5">~25 días hábiles</p>
+            )}
+          </div>
 
           {!isOutOfStock ? (
             <button
               onClick={handleAddToCart}
               className={`font-sans text-sm font-medium px-3 py-1.5 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-clay-400 focus:ring-offset-1
-                ${
-                  added
-                    ? 'bg-green-500 text-white scale-95'
-                    : 'bg-clay-500 hover:bg-clay-600 text-white active:scale-95'
-                }`}
+                ${added ? 'bg-green-500 text-white scale-95' : 'bg-clay-500 hover:bg-clay-600 text-white active:scale-95'}`}
               aria-label={`Agregar ${product.name} al carrito`}
             >
               {added ? '✓ Agregado' : 'Agregar'}
             </button>
           ) : (
-            <span className="font-sans text-xs text-stone-400 font-medium italic">Sin stock</span>
+            <button
+              onClick={handlePreorder}
+              className={`font-sans text-sm font-medium px-3 py-1.5 rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-1
+                ${added ? 'bg-amber-500 text-white border-amber-500 scale-95' : 'border-amber-600 text-amber-700 hover:bg-amber-50 active:scale-95'}`}
+              aria-label={`Encargar ${product.name}`}
+            >
+              {added ? '✓ Agregado' : 'Encargar'}
+            </button>
           )}
         </div>
       </div>

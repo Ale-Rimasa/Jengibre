@@ -20,14 +20,28 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
             className="flex items-center gap-2 group"
             aria-label="Jengibre Cerámicas - Inicio"
           >
-            <span className="text-2xl" role="img" aria-hidden="true">
-              🫚
-            </span>
-            <span className="font-serif text-2xl font-semibold text-bark-700 group-hover:text-clay-600 transition-colors">
-              Jengibre
-            </span>
-            <span className="hidden sm:inline text-xs text-stone-400 font-sans tracking-widest uppercase mt-1">
-              Cerámicas
+            <img
+              src="/logo.png"
+              alt="Jengibre Cerámicas"
+              className="h-10 w-auto object-contain group-hover:opacity-90 transition-opacity"
+              onError={(e) => {
+                // Fallback si no hay logo todavía
+                const el = e.currentTarget;
+                el.style.display = 'none';
+                const next = el.nextElementSibling as HTMLElement | null;
+                if (next) next.style.display = 'flex';
+              }}
+            />
+            <span
+              className="items-center gap-2 hidden"
+              aria-hidden="true"
+            >
+              <span className="font-serif text-2xl font-semibold text-bark-700 group-hover:text-clay-600 transition-colors">
+                Jengibre
+              </span>
+              <span className="hidden sm:inline text-xs text-stone-400 font-sans tracking-widest uppercase mt-1">
+                Cerámicas
+              </span>
             </span>
           </Link>
 
