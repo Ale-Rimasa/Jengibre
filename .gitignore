@@ -39,3 +39,6 @@ coverage/
 # Misc
 .cache/
 *.tsbuildinfo
+
+# Claude Code local config
+.claude/
