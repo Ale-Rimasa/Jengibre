@@ -19,14 +19,17 @@ export interface User {
   role: string;
 }
 
-export type Category =
-  | 'todas'
-  | 'tazas'
-  | 'platos'
-  | 'decoracion'
-  | 'bowls'
-  | 'jarrones'
-  | 'set_vajilla';
+// Category is a string slug (e.g. 'tazas', 'bowls', 'todas')
+export type Category = string;
+
+// Category as stored in the database
+export interface CategoryOption {
+  id: number;
+  slug: string;
+  label: string;
+  active: boolean;
+  order: number;
+}
 
 export interface OrderItem {
   id: number;

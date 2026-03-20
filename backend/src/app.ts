@@ -13,6 +13,7 @@ import authRoutes from './routes/auth';
 import productRoutes from './routes/products';
 import uploadRoutes from './routes/upload';
 import orderRoutes from './routes/orders';
+import categoryRoutes from './routes/categories';
 import { errorHandler } from './middleware/errorHandler';
 
 const app = express();
@@ -62,6 +63,7 @@ app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/categories', categoryRoutes);
 
 // Health check
 app.get('/api/health', (_req, res) => {

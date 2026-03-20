@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import { Product, User } from '../types';
+import { Product, User, CategoryOption } from '../types';
 
 const api = axios.create({
   baseURL: '/api',
@@ -119,6 +119,29 @@ export const apiService = {
 
   async updateOrderStatus(id: number, status: string) {
     const response = await api.patch(`/orders/${id}/status`, { status });
+    return response.data;
+  },
+
+  // Categories
+  async getCategories(onlyActive = false): Promise<{ categories: CategoryOption[] }> {
+    const response = await api.get<{ categories: CategoryOption[] }>('/categories', {
+      params: onlyActive ? { active: 'true' } : {},
+    });
+    return response.data;
+  },
+
+  async createCategory(data: { slug: string; label: string; order?: number }): Promise<{ category: CategoryOption }> {
+    const response = await api.post<{ category: CategoryOption }>('/categories', data);
+    return response.data;
+  },
+
+  async updateCategory(id: number, data: { label?: string; active?: boolean; order?: number }): Promise<{ category: CategoryOption }> {
+    const response = await api.put<{ category: CategoryOption }>(`/categories/${id}`, data);
+    return response.data;
+  },
+
+  async deleteCategory(id: number): Promise<{ message: string }> {
+    const response = await api.delete<{ message: string }>(`/categories/${id}`);
     return response.data;
   },
 };
