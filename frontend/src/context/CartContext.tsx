@@ -29,6 +29,7 @@ interface CartContextValue {
 }
 
 const STORAGE_KEY = 'jengibre_cart';
+const CART_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 días
 
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
@@ -84,25 +85,32 @@ const CartContext = createContext<CartContextValue | undefined>(undefined);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(cartReducer, { items: [] });
 
-  // Load from localStorage on mount
+  // Load from localStorage on mount (with 7-day expiry)
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        const parsed = JSON.parse(stored) as CartItem[];
-        if (Array.isArray(parsed)) {
-          dispatch({ type: 'LOAD_CART', payload: parsed });
+        const parsed = JSON.parse(stored) as { items: CartItem[]; savedAt: number };
+        const isExpired = Date.now() - parsed.savedAt > CART_TTL_MS;
+        if (!isExpired && Array.isArray(parsed.items) && parsed.items.length > 0) {
+          dispatch({ type: 'LOAD_CART', payload: parsed.items });
+        } else if (isExpired) {
+          localStorage.removeItem(STORAGE_KEY);
         }
       }
     } catch {
-      // Ignore parse errors
+      localStorage.removeItem(STORAGE_KEY);
     }
   }, []);
 
   // Persist to localStorage on changes
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.items));
+      if (state.items.length > 0) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ items: state.items, savedAt: Date.now() }));
+      } else {
+        localStorage.removeItem(STORAGE_KEY);
+      }
     } catch {
       // Ignore storage errors
     }
