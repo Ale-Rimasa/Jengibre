@@ -10,6 +10,7 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Admin from './pages/Admin';
 import AboutUs from './pages/AboutUs';
+import ProductDetail from './pages/ProductDetail';
 
 function AppLayout() {
   const [cartOpen, setCartOpen] = useState(false);
@@ -25,6 +26,7 @@ function AppLayout() {
         <Route path="/login" element={<Login />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/nosotros" element={<AboutUs />} />
+        <Route path="/producto/:id" element={<ProductDetail />} />
       </Routes>
 
       <Footer />

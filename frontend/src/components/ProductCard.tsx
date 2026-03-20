@@ -1,19 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Product } from '../types';
 import { useCart } from '../context/CartContext';
 
 interface ProductCardProps {
   product: Product;
 }
-
-const CATEGORY_LABELS: Record<string, string> = {
-  tazas: 'Tazas',
-  platos: 'Platos',
-  decoracion: 'Decoración',
-  bowls: 'Bowls',
-  jarrones: 'Jarrones',
-  set_vajilla: 'Set Vajilla',
-};
 
 const CATEGORY_COLORS: Record<string, string> = {
   tazas: 'bg-amber-100 text-amber-800',
@@ -33,23 +25,37 @@ function formatPrice(price: number): string {
   }).format(price);
 }
 
+function formatCategoryLabel(slug: string): string {
+  return slug.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 export default function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCart();
+  const navigate = useNavigate();
   const [imgError, setImgError] = useState(false);
   const [added, setAdded] = useState(false);
 
-  const handleAddToCart = () => {
+  const isOutOfStock = product.stock === 0;
+  const isLowStock = !isOutOfStock && product.stock <= 3;
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
     addToCart(product);
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   };
 
-  const categoryLabel = CATEGORY_LABELS[product.category] ?? product.category;
   const categoryColor =
     CATEGORY_COLORS[product.category] ?? 'bg-stone-100 text-stone-600';
+  const categoryLabel = formatCategoryLabel(product.category);
 
   return (
-    <article className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 flex flex-col border border-stone-100">
+    <article
+      onClick={() => navigate(`/producto/${product.id}`)}
+      className={`group bg-white rounded-2xl overflow-hidden border border-stone-100 flex flex-col cursor-pointer
+        shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5
+        ${isOutOfStock ? 'opacity-70' : ''}`}
+    >
       {/* Image */}
       <div className="relative aspect-square bg-cream-100 overflow-hidden">
         {!imgError ? (
@@ -58,7 +64,8 @@ export default function ProductCard({ product }: ProductCardProps) {
             alt={product.name}
             loading="lazy"
             onError={() => setImgError(true)}
-            className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+            className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105
+              ${isOutOfStock ? 'grayscale' : ''}`}
           />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center text-stone-300">
@@ -79,16 +86,24 @@ export default function ProductCard({ product }: ProductCardProps) {
             <span className="text-xs font-sans">Sin imagen</span>
           </div>
         )}
-        {/* Stock badge */}
-        {product.stock <= 3 && product.stock > 0 && (
-          <span className="absolute top-2 right-2 bg-clay-500 text-white text-xs font-sans font-medium px-2 py-0.5 rounded-full">
+
+        {/* Badges */}
+        {isOutOfStock && (
+          <span className="absolute top-2 left-2 bg-stone-700 text-white text-xs font-sans font-semibold px-2.5 py-1 rounded-full shadow-sm">
+            Agotado
+          </span>
+        )}
+        {isLowStock && (
+          <span className="absolute top-2 right-2 bg-clay-500 text-white text-xs font-sans font-medium px-2 py-0.5 rounded-full shadow-sm">
             ¡Últimas {product.stock}!
           </span>
         )}
-        {product.stock === 0 && (
-          <div className="absolute inset-0 bg-stone-900/40 flex items-center justify-center">
-            <span className="bg-white text-stone-700 text-sm font-sans font-semibold px-4 py-2 rounded-full">
-              Sin stock
+
+        {/* Hover: "Ver detalle" pill */}
+        {!isOutOfStock && (
+          <div className="absolute inset-0 flex items-end justify-center pb-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+            <span className="bg-white/90 backdrop-blur-sm text-bark-700 text-xs font-sans font-semibold px-4 py-1.5 rounded-full shadow-sm border border-stone-100">
+              Ver detalle →
             </span>
           </div>
         )}
@@ -96,7 +111,6 @@ export default function ProductCard({ product }: ProductCardProps) {
 
       {/* Content */}
       <div className="p-4 flex flex-col flex-1">
-        {/* Category badge */}
         <span
           className={`self-start text-xs font-sans font-medium px-2.5 py-0.5 rounded-full mb-2 ${categoryColor}`}
         >
@@ -115,20 +129,23 @@ export default function ProductCard({ product }: ProductCardProps) {
           <span className="font-serif text-lg font-semibold text-clay-600">
             {formatPrice(product.price)}
           </span>
-          <button
-            onClick={handleAddToCart}
-            disabled={product.stock === 0}
-            className={`font-sans text-sm font-medium px-3 py-1.5 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-clay-400 focus:ring-offset-1
-              ${product.stock === 0
-                ? 'bg-stone-100 text-stone-400 cursor-not-allowed'
-                : added
-                ? 'bg-green-500 text-white scale-95'
-                : 'bg-clay-500 hover:bg-clay-600 text-white active:scale-95'
-              }`}
-            aria-label={`Agregar ${product.name} al carrito`}
-          >
-            {added ? '✓ Agregado' : 'Agregar'}
-          </button>
+
+          {!isOutOfStock ? (
+            <button
+              onClick={handleAddToCart}
+              className={`font-sans text-sm font-medium px-3 py-1.5 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-clay-400 focus:ring-offset-1
+                ${
+                  added
+                    ? 'bg-green-500 text-white scale-95'
+                    : 'bg-clay-500 hover:bg-clay-600 text-white active:scale-95'
+                }`}
+              aria-label={`Agregar ${product.name} al carrito`}
+            >
+              {added ? '✓ Agregado' : 'Agregar'}
+            </button>
+          ) : (
+            <span className="font-sans text-xs text-stone-400 font-medium italic">Sin stock</span>
+          )}
         </div>
       </div>
     </article>

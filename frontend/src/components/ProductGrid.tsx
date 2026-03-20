@@ -10,16 +10,16 @@ interface ProductGridProps {
 
 function SkeletonCard() {
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-100 animate-pulse">
-      <div className="aspect-square bg-stone-100" />
+    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-100">
+      <div className="aspect-square animate-shimmer" />
       <div className="p-4 space-y-3">
-        <div className="h-4 bg-stone-100 rounded-full w-20" />
-        <div className="h-5 bg-stone-100 rounded-full w-3/4" />
-        <div className="h-3 bg-stone-100 rounded-full w-full" />
-        <div className="h-3 bg-stone-100 rounded-full w-2/3" />
+        <div className="h-4 animate-shimmer rounded-full w-20" />
+        <div className="h-5 animate-shimmer rounded-full w-3/4" />
+        <div className="h-3 animate-shimmer rounded-full w-full" />
+        <div className="h-3 animate-shimmer rounded-full w-2/3" />
         <div className="flex justify-between items-center pt-1">
-          <div className="h-6 bg-stone-100 rounded-full w-24" />
-          <div className="h-8 bg-stone-100 rounded-lg w-20" />
+          <div className="h-6 animate-shimmer rounded-full w-24" />
+          <div className="h-8 animate-shimmer rounded-lg w-20" />
         </div>
       </div>
     </div>
