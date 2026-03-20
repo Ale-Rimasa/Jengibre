@@ -13,17 +13,11 @@ export default function Footer() {
             <div className="flex items-center gap-2 mb-3">
               <img
                 src="/Logo.png"
-                alt="Jengibre Cerámicas"
-                className="h-14 w-auto object-contain rounded-xl bg-white/10 p-1"
-                onError={(e) => {
-                  const el = e.currentTarget;
-                  el.style.display = 'none';
-                  const next = el.nextElementSibling as HTMLElement | null;
-                  if (next) next.style.display = 'flex';
-                }}
+                alt=""
+                className="h-12 w-auto object-contain rounded-xl bg-white/10 p-1"
               />
-              <span className="items-center gap-2 hidden">
-                <span className="font-serif text-xl font-semibold text-cream-100">Jengibre</span>
+              <span className="font-serif text-xl font-semibold text-cream-100">
+                Jengibre
               </span>
             </div>
             <p className="font-sans text-sm text-cream-300 leading-relaxed">
