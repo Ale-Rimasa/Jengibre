@@ -19,16 +19,15 @@ FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-# Only production deps
+# All deps needed (prisma CLI required for migrate deploy)
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm ci
 
 # Built JS
 COPY --from=builder /app/dist ./dist
 
 # Prisma client + schema (needed at runtime)
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 COPY prisma ./prisma
 
 # Product images
