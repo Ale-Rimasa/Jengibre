@@ -1,4 +1,4 @@
-import React, { useState, useEffect, FormEvent } from 'react';
+import React, { useState, useEffect, useRef, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Product, Category } from '../types';
@@ -53,6 +53,12 @@ export default function Admin() {
   const [formErrors, setFormErrors] = useState<Partial<CreateProductData>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Image upload state
+  const [imagePreview, setImagePreview] = useState<string>('');
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [imageError, setImageError] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   // Delete confirmation
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
@@ -95,6 +101,8 @@ export default function Admin() {
     setEditingProduct(null);
     setFormData(EMPTY_FORM);
     setFormErrors({});
+    setImagePreview('');
+    setImageError('');
     setModalOpen(true);
   };
 
@@ -108,6 +116,8 @@ export default function Admin() {
       image: product.image,
       stock: product.stock,
     });
+    setImagePreview(product.image || '');
+    setImageError('');
     setFormErrors({});
     setModalOpen(true);
   };
@@ -117,6 +127,39 @@ export default function Admin() {
     setEditingProduct(null);
     setFormData(EMPTY_FORM);
     setFormErrors({});
+    setImagePreview('');
+    setImageError('');
+  };
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Local preview immediately
+    const reader = new FileReader();
+    reader.onload = (ev) => setImagePreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+
+    // Upload to Cloudinary via backend
+    setIsUploadingImage(true);
+    setImageError('');
+    try {
+      const data = new FormData();
+      data.append('image', file);
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        credentials: 'include',
+        body: data,
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Error al subir imagen');
+      setFormData((prev) => ({ ...prev, image: result.url }));
+    } catch (err) {
+      setImageError(err instanceof Error ? err.message : 'Error al subir imagen');
+      setImagePreview('');
+    } finally {
+      setIsUploadingImage(false);
+    }
   };
 
   const validateForm = (): boolean => {
@@ -125,7 +168,7 @@ export default function Admin() {
     if (!formData.name.trim()) errors.name = 'El nombre es requerido';
     if (formData.price <= 0) errors.price = 'El precio debe ser mayor a 0' as unknown as never;
     if (!formData.description.trim()) errors.description = 'La descripción es requerida';
-    if (!formData.image.trim()) errors.image = 'La URL de imagen es requerida';
+    if (!formData.image.trim()) errors.image = 'La imagen es requerida';
     if (formData.stock < 0) errors.stock = 'El stock no puede ser negativo' as unknown as never;
 
     setFormErrors(errors as Partial<CreateProductData>);
@@ -493,20 +536,60 @@ export default function Admin() {
                 )}
               </div>
 
-              {/* Image URL */}
+              {/* Image Upload */}
               <div>
                 <label className="block font-sans text-xs font-semibold text-stone-600 uppercase tracking-wider mb-1.5">
-                  URL de imagen *
+                  Imagen *
                 </label>
+
+                {/* Preview */}
+                {imagePreview && (
+                  <div className="mb-2 w-full h-40 rounded-lg overflow-hidden bg-cream-100 border border-stone-200">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+
+                {/* Upload button */}
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`w-full border-2 border-dashed rounded-lg px-4 py-5 text-center cursor-pointer transition-colors ${
+                    isUploadingImage
+                      ? 'border-clay-300 bg-clay-50'
+                      : 'border-stone-200 hover:border-clay-300 hover:bg-cream-50'
+                  }`}
+                >
+                  {isUploadingImage ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-clay-500 border-t-transparent rounded-full animate-spin" />
+                      <span className="font-sans text-sm text-clay-600">Subiendo imagen...</span>
+                    </div>
+                  ) : (
+                    <div>
+                      <svg className="w-6 h-6 text-stone-400 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <p className="font-sans text-sm text-stone-500">
+                        {imagePreview ? 'Cambiar imagen' : 'Subir imagen'}
+                      </p>
+                      <p className="font-sans text-xs text-stone-400 mt-0.5">JPG, PNG o WEBP · máx 5 MB</p>
+                    </div>
+                  )}
+                </div>
                 <input
-                  type="text"
-                  value={formData.image}
-                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                  placeholder="/images/producto-13.jpg"
-                  className="w-full px-3 py-2 border border-stone-200 rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-clay-300"
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleImageChange}
+                  className="hidden"
                 />
-                {formErrors.image && (
-                  <p className="font-sans text-xs text-red-500 mt-1">{formErrors.image}</p>
+                {(imageError || formErrors.image) && (
+                  <p className="font-sans text-xs text-red-500 mt-1">
+                    {imageError || formErrors.image}
+                  </p>
                 )}
               </div>
 

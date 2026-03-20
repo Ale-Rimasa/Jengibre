@@ -11,6 +11,7 @@ dotenv.config();
 
 import authRoutes from './routes/auth';
 import productRoutes from './routes/products';
+import uploadRoutes from './routes/upload';
 import { errorHandler } from './middleware/errorHandler';
 
 const app = express();
@@ -58,6 +59,7 @@ const authLimiter = rateLimit({
 // Routes
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Health check
 app.get('/api/health', (_req, res) => {
