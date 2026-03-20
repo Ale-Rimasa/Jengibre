@@ -276,7 +276,17 @@ export default function Admin() {
       setDeleteId(null);
       loadProducts();
     } catch {
-      showToast('Error al eliminar producto', 'error');
+      showToast('Error al desactivar producto', 'error');
+    }
+  };
+
+  const handleReactivate = async (id: number) => {
+    try {
+      await apiService.updateProduct(id, { active: true });
+      showToast('Producto activado', 'success');
+      loadProducts();
+    } catch {
+      showToast('Error al activar producto', 'error');
     }
   };
 
@@ -569,11 +579,29 @@ export default function Admin() {
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                 </svg>
                               </button>
-                              <button onClick={() => setDeleteId(product.id)} className="text-stone-400 hover:text-red-500 transition-colors focus:outline-none" aria-label={`Eliminar ${product.name}`}>
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                              </button>
+                              {product.active ? (
+                                <button
+                                  onClick={() => setDeleteId(product.id)}
+                                  className="text-stone-400 hover:text-red-500 transition-colors focus:outline-none"
+                                  aria-label={`Desactivar ${product.name}`}
+                                  title="Desactivar producto"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => handleReactivate(product.id)}
+                                  className="text-stone-400 hover:text-green-600 transition-colors focus:outline-none"
+                                  aria-label={`Activar ${product.name}`}
+                                  title="Activar producto"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                </button>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -955,7 +983,7 @@ export default function Admin() {
           <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
             <h3 className="font-serif text-lg font-semibold text-bark-800 mb-2">¿Desactivar producto?</h3>
             <p className="font-sans text-sm text-stone-500 mb-5">
-              El producto se desactivará y no será visible en la tienda. Podés reactivarlo editándolo.
+              El producto dejará de ser visible en la tienda. Podés volver a activarlo desde el ícono de check en la tabla.
             </p>
             <div className="flex gap-3">
               <button
