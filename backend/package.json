@@ -24,6 +24,9 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0"
   },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/cookie-parser": "^1.4.6",
