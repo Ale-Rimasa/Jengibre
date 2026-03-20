@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <rect width="400" height="400" fill="#fdfaf6"/>
+  <!-- Plato postre con líneas sutiles -->
+  <ellipse cx="200" cy="305" rx="100" ry="16" fill="#e8dcc8" opacity="0.3"/>
+  <ellipse cx="200" cy="272" rx="100" ry="17" fill="#c9b99a"/>
+  <path d="M108 248 Q112 215 200 210 Q288 215 292 248 Q288 272 200 274 Q112 272 108 248 Z" fill="#f5efe3"/>
+  <!-- Incisiones lineales finas -->
+  <path d="M130 235 Q200 228 270 235" stroke="#c9b99a" stroke-width="1" fill="none"/>
+  <path d="M122 243 Q200 236 278 243" stroke="#c9b99a" stroke-width="0.8" fill="none"/>
+  <path d="M118 251 Q200 244 282 251" stroke="#c9b99a" stroke-width="0.8" fill="none"/>
+  <path d="M120 259 Q200 252 280 259" stroke="#c9b99a" stroke-width="0.6" fill="none"/>
+  <!-- Borde irregular artesanal -->
+  <path d="M108 248 Q106 238 112 226 Q125 210 200 207 Q275 210 288 226 Q294 238 292 248" stroke="#b8a88a" stroke-width="2" fill="none"/>
+  <text x="200" y="358" text-anchor="middle" font-family="Georgia, serif" font-size="14" fill="#78624a" opacity="0.8">Plato Postre Líneas Sutiles</text>
+</svg>

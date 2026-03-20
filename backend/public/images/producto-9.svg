@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <rect width="400" height="400" fill="#f0f4f0"/>
+  <!-- Bowl ensalada grande rústico verde oliva -->
+  <ellipse cx="200" cy="300" rx="115" ry="18" fill="#4d7c0f" opacity="0.2"/>
+  <!-- Cuerpo bowl grande -->
+  <path d="M90 215 Q85 275 100 292 Q148 312 200 312 Q252 312 300 292 Q315 275 310 215 Z" fill="#4a5e3a"/>
+  <!-- Interior verde oliva -->
+  <ellipse cx="200" cy="215" rx="110" ry="22" fill="#84a06a"/>
+  <!-- Marcas de dedos del artesano -->
+  <path d="M130 240 Q140 232 148 240" stroke="#3d4f2e" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.6"/>
+  <path d="M155 232 Q162 226 168 234" stroke="#3d4f2e" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.5"/>
+  <path d="M240 248 Q250 240 258 248" stroke="#3d4f2e" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.5"/>
+  <path d="M220 238 Q228 230 235 238" stroke="#3d4f2e" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.4"/>
+  <!-- Exterior sin esmaltar - textura arcilla -->
+  <path d="M95 255 Q148 248 200 252 Q252 248 305 255" stroke="#3d4f2e" stroke-width="1" fill="none" opacity="0.3"/>
+  <path d="M90 272 Q145 264 200 268 Q255 264 310 272" stroke="#3d4f2e" stroke-width="1" fill="none" opacity="0.25"/>
+  <text x="200" y="360" text-anchor="middle" font-family="Georgia, serif" font-size="14" fill="#3d4f2e" opacity="0.8">Bowl Ensalada Grande Rústico</text>
+</svg>

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <rect width="400" height="400" fill="#f0ece8"/>
+  <!-- Taza grande gris -->
+  <ellipse cx="200" cy="295" rx="75" ry="13" fill="#78716c" opacity="0.25"/>
+  <path d="M148 195 Q143 272 155 292 Q200 304 245 292 Q257 272 252 195 Z" fill="#6b7280"/>
+  <path d="M148 195 Q200 188 252 195" stroke="#4b5563" stroke-width="2" fill="none"/>
+  <ellipse cx="200" cy="195" rx="52" ry="11" fill="#9ca3af"/>
+  <!-- Asa grande -->
+  <path d="M252 220 Q288 220 288 252 Q288 282 252 282" stroke="#4b5563" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <!-- Textura stoneware -->
+  <path d="M158 218 Q200 212 242 218" stroke="#4b5563" stroke-width="1" fill="none" opacity="0.3"/>
+  <path d="M156 238 Q200 231 244 238" stroke="#4b5563" stroke-width="1" fill="none" opacity="0.2"/>
+  <path d="M155 258 Q200 250 245 258" stroke="#4b5563" stroke-width="1" fill="none" opacity="0.2"/>
+  <!-- Vapor -->
+  <path d="M183 175 Q179 152 185 136" stroke="#9ca3af" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.5"/>
+  <path d="M200 173 Q197 148 201 132" stroke="#9ca3af" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.5"/>
+  <path d="M217 175 Q221 150 215 136" stroke="#9ca3af" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.5"/>
+  <text x="200" y="355" text-anchor="middle" font-family="Georgia, serif" font-size="14" fill="#57534e" opacity="0.8">Taza Grande Stoneware</text>
+</svg>

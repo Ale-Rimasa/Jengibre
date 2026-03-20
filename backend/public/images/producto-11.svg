@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <rect width="400" height="400" fill="#fdfcfa"/>
+  <!-- Taza té doble pared porcelana -->
+  <ellipse cx="200" cy="295" rx="65" ry="11" fill="#e7e5e4" opacity="0.4"/>
+  <!-- Pared exterior -->
+  <path d="M152 200 Q148 268 158 285 Q178 298 200 298 Q222 298 242 285 Q252 268 248 200 Z" fill="#f5f5f4"/>
+  <!-- Espacio doble pared (visible) -->
+  <path d="M158 208 Q155 265 163 280 Q180 291 200 291 Q220 291 237 280 Q245 265 242 208 Z" fill="#e7e5e4" opacity="0.5"/>
+  <!-- Pared interior -->
+  <path d="M165 215 Q162 262 170 275 Q185 284 200 284 Q215 284 230 275 Q238 262 235 215 Z" fill="white"/>
+  <ellipse cx="200" cy="215" rx="35" ry="8" fill="#f5f5f4"/>
+  <ellipse cx="200" cy="200" rx="48" ry="10" fill="#e7e5e4"/>
+  <!-- Relieve floral sutil -->
+  <circle cx="200" cy="248" r="3" fill="#d4c5a9" opacity="0.6"/>
+  <path d="M195 248 Q193 243 196 241 Q200 239 204 241 Q207 243 205 248" stroke="#d4c5a9" stroke-width="1" fill="none" opacity="0.5"/>
+  <path d="M189 245 Q188 240 192 240" stroke="#d4c5a9" stroke-width="1" fill="none" opacity="0.4"/>
+  <path d="M211 245 Q212 240 208 240" stroke="#d4c5a9" stroke-width="1" fill="none" opacity="0.4"/>
+  <!-- Vapor delicado -->
+  <path d="M188 182 Q186 165 190 152" stroke="#d4c5a9" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.5"/>
+  <path d="M200 180 Q199 162 201 149" stroke="#d4c5a9" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.5"/>
+  <path d="M212 182 Q214 163 210 152" stroke="#d4c5a9" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.5"/>
+  <text x="200" y="355" text-anchor="middle" font-family="Georgia, serif" font-size="14" fill="#78716c" opacity="0.8">Taza Té Doble Pared</text>
+</svg>

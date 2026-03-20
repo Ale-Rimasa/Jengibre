@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <rect width="400" height="400" fill="#faf7f2"/>
+  <!-- Plato trinche orgánico -->
+  <ellipse cx="200" cy="310" rx="120" ry="18" fill="#d4c5a9" opacity="0.3"/>
+  <!-- Plato base -->
+  <ellipse cx="200" cy="280" rx="120" ry="20" fill="#c9b99a"/>
+  <!-- Superficie plato con forma orgánica -->
+  <path d="M85 240 Q88 200 200 195 Q315 200 315 240 Q312 278 200 282 Q88 278 85 240 Z" fill="#e8dcc8"/>
+  <!-- Borde irregular artesanal -->
+  <path d="M85 240 Q82 230 88 218 Q95 205 115 198 Q140 190 200 188 Q258 190 285 198 Q305 205 312 218 Q318 230 315 240" stroke="#c9b99a" stroke-width="3" fill="none"/>
+  <!-- Marcas de quema -->
+  <ellipse cx="170" cy="235" rx="15" ry="8" fill="#b8a88a" opacity="0.4"/>
+  <ellipse cx="230" cy="245" rx="10" ry="6" fill="#b8a88a" opacity="0.3"/>
+  <ellipse cx="200" cy="220" rx="12" ry="5" fill="#b8a88a" opacity="0.25"/>
+  <text x="200" y="360" text-anchor="middle" font-family="Georgia, serif" font-size="14" fill="#78624a" opacity="0.8">Plato Trinche Orgánico</text>
+</svg>

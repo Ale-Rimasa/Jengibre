@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <rect width="400" height="400" fill="#faf7f2"/>
+  <!-- Set vajilla 4 personas -->
+  <!-- Plato grande atrás -->
+  <ellipse cx="200" cy="270" rx="110" ry="18" fill="#c9b99a" opacity="0.8"/>
+  <path d="M95 248 Q98 220 200 215 Q302 220 305 248 Q302 268 200 272 Q98 268 95 248Z" fill="#e8dcc8" opacity="0.9"/>
+  <!-- Bowl encima -->
+  <path d="M148 228 Q145 248 152 258 Q176 266 200 266 Q224 266 248 258 Q255 248 252 228Z" fill="#6b7280" opacity="0.9"/>
+  <ellipse cx="200" cy="228" rx="52" ry="10" fill="#9ca3af"/>
+  <!-- Taza pequeña arriba derecha -->
+  <path d="M252 195 Q250 218 255 225 Q268 230 280 225 Q285 218 283 195Z" fill="#c4713a"/>
+  <ellipse cx="267" cy="195" rx="16" ry="5" fill="#d4845a"/>
+  <path d="M283 203 Q293 203 293 212 Q293 222 283 222" stroke="#b05a28" stroke-width="4" fill="none"/>
+  <!-- Platito pequeño izquierda -->
+  <ellipse cx="135" cy="205" rx="38" ry="7" fill="#c9b99a"/>
+  <path d="M100 198 Q103 185 135 182 Q167 185 170 198 Q167 205 135 206 Q103 205 100 198Z" fill="#f5efe3"/>
+  <text x="200" y="360" text-anchor="middle" font-family="Georgia, serif" font-size="13" fill="#78624a" opacity="0.8">Set Vajilla 4 Personas Tierra</text>
+</svg>

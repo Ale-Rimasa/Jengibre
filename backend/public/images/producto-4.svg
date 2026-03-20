@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <rect width="400" height="400" fill="#eef4f8"/>
+  <!-- Bowl sopa azul -->
+  <ellipse cx="200" cy="295" rx="95" ry="15" fill="#3b82f6" opacity="0.2"/>
+  <!-- Cuerpo bowl -->
+  <path d="M112 220 Q108 278 120 292 Q160 308 200 308 Q240 308 280 292 Q292 278 288 220 Z" fill="#2563eb"/>
+  <!-- Interior blanco -->
+  <ellipse cx="200" cy="220" rx="88" ry="18" fill="#dbeafe"/>
+  <!-- Reflejo -->
+  <ellipse cx="175" cy="248" rx="25" ry="8" fill="#93c5fd" opacity="0.4"/>
+  <!-- Borde -->
+  <path d="M112 220 Q200 205 288 220" stroke="#1d4ed8" stroke-width="3" fill="none"/>
+  <!-- Textura esmalte -->
+  <path d="M125 250 Q200 242 275 250" stroke="#1d4ed8" stroke-width="1" fill="none" opacity="0.25"/>
+  <path d="M118 268 Q200 259 282 268" stroke="#1d4ed8" stroke-width="1" fill="none" opacity="0.2"/>
+  <text x="200" y="358" text-anchor="middle" font-family="Georgia, serif" font-size="14" fill="#1e40af" opacity="0.8">Bowl Sopa Esmalte Azul</text>
+</svg>

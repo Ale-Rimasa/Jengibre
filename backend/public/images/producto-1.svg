@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <rect width="400" height="400" fill="#f5efe6"/>
+  <!-- Taza espresso terracota -->
+  <ellipse cx="200" cy="290" rx="70" ry="12" fill="#c4956a" opacity="0.3"/>
+  <!-- Cuerpo de la taza -->
+  <path d="M155 200 Q150 270 160 290 Q200 300 240 290 Q250 270 245 200 Z" fill="#c4713a"/>
+  <path d="M155 200 Q200 195 245 200" stroke="#b05a28" stroke-width="2" fill="none"/>
+  <!-- Interior -->
+  <ellipse cx="200" cy="200" rx="45" ry="10" fill="#d4845a"/>
+  <!-- Asa -->
+  <path d="M245 225 Q275 225 275 250 Q275 275 245 275" stroke="#b05a28" stroke-width="8" fill="none" stroke-linecap="round"/>
+  <!-- Detalles textura -->
+  <path d="M165 220 Q200 215 235 220" stroke="#b05a28" stroke-width="1" fill="none" opacity="0.4"/>
+  <path d="M163 240 Q200 234 237 240" stroke="#b05a28" stroke-width="1" fill="none" opacity="0.3"/>
+  <!-- Vapor -->
+  <path d="M185 180 Q182 160 188 145" stroke="#c4956a" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.6"/>
+  <path d="M200 178 Q198 155 202 140" stroke="#c4956a" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.6"/>
+  <path d="M215 180 Q218 158 212 145" stroke="#c4956a" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.6"/>
+  <!-- Texto categoría -->
+  <text x="200" y="355" text-anchor="middle" font-family="Georgia, serif" font-size="14" fill="#8b6343" opacity="0.8">Taza Espresso Terracota</text>
+</svg>

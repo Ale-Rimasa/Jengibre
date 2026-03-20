@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <rect width="400" height="400" fill="#fdf8f0"/>
+  <!-- Cuenco decorativo ondas cobre/oro -->
+  <ellipse cx="200" cy="298" rx="105" ry="16" fill="#b45309" opacity="0.2"/>
+  <!-- Cuenco base -->
+  <path d="M100 240 Q98 278 115 292 Q158 308 200 308 Q242 308 285 292 Q302 278 300 240 Z" fill="#92400e"/>
+  <!-- Superficie con ondas -->
+  <ellipse cx="200" cy="240" rx="100" ry="20" fill="#d97706"/>
+  <!-- Ondas talladas -->
+  <path d="M110 248 Q155 238 200 248 Q245 258 290 248" stroke="#f59e0b" stroke-width="2.5" fill="none" opacity="0.7"/>
+  <path d="M108 262 Q153 250 200 262 Q247 274 292 262" stroke="#f59e0b" stroke-width="2" fill="none" opacity="0.6"/>
+  <path d="M110 276 Q155 264 200 276 Q245 288 290 276" stroke="#f59e0b" stroke-width="1.5" fill="none" opacity="0.5"/>
+  <!-- Esmalte metalizado cobre -->
+  <ellipse cx="165" cy="235" rx="22" ry="8" fill="#fbbf24" opacity="0.4"/>
+  <ellipse cx="235" cy="242" rx="15" ry="5" fill="#fbbf24" opacity="0.3"/>
+  <!-- Brillo metálico -->
+  <path d="M130 232 Q165 226 185 232" stroke="#fef3c7" stroke-width="2" fill="none" opacity="0.6"/>
+  <text x="200" y="358" text-anchor="middle" font-family="Georgia, serif" font-size="14" fill="#92400e" opacity="0.8">Cuenco Decorativo Ondas</text>
+</svg>

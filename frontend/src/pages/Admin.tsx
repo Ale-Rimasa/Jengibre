@@ -1,0 +1,574 @@
+import React, { useState, useEffect, FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { Product, Category } from '../types';
+import { apiService, CreateProductData } from '../services/api';
+
+type ToastType = 'success' | 'error';
+interface Toast {
+  id: number;
+  message: string;
+  type: ToastType;
+}
+
+const CATEGORIES: { value: Exclude<Category, 'todas'>; label: string }[] = [
+  { value: 'tazas', label: 'Tazas' },
+  { value: 'platos', label: 'Platos' },
+  { value: 'decoracion', label: 'Decoración' },
+  { value: 'bowls', label: 'Bowls' },
+  { value: 'jarrones', label: 'Jarrones' },
+  { value: 'set_vajilla', label: 'Set Vajilla' },
+];
+
+const EMPTY_FORM: CreateProductData = {
+  name: '',
+  price: 0,
+  category: 'tazas',
+  description: '',
+  image: '',
+  stock: 0,
+};
+
+function formatPrice(price: number): string {
+  return new Intl.NumberFormat('es-AR', {
+    style: 'currency',
+    currency: 'ARS',
+    minimumFractionDigits: 0,
+  }).format(price);
+}
+
+export default function Admin() {
+  const { isAuthenticated, isLoading: authLoading, user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [toastCounter, setToastCounter] = useState(0);
+
+  // Modal state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [formData, setFormData] = useState<CreateProductData>(EMPTY_FORM);
+  const [formErrors, setFormErrors] = useState<Partial<CreateProductData>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Delete confirmation
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      navigate('/login', { replace: true });
+    }
+  }, [isAuthenticated, authLoading, navigate]);
+
+  // Load products
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadProducts();
+    }
+  }, [isAuthenticated]);
+
+  const loadProducts = async () => {
+    setIsLoading(true);
+    try {
+      const data = await apiService.getProducts();
+      setProducts(data.products);
+    } catch {
+      showToast('Error al cargar productos', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const showToast = (message: string, type: ToastType) => {
+    const id = toastCounter + 1;
+    setToastCounter(id);
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 3500);
+  };
+
+  const openCreateModal = () => {
+    setEditingProduct(null);
+    setFormData(EMPTY_FORM);
+    setFormErrors({});
+    setModalOpen(true);
+  };
+
+  const openEditModal = (product: Product) => {
+    setEditingProduct(product);
+    setFormData({
+      name: product.name,
+      price: product.price,
+      category: product.category,
+      description: product.description,
+      image: product.image,
+      stock: product.stock,
+    });
+    setFormErrors({});
+    setModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+    setEditingProduct(null);
+    setFormData(EMPTY_FORM);
+    setFormErrors({});
+  };
+
+  const validateForm = (): boolean => {
+    const errors: Partial<Record<keyof CreateProductData, string>> = {};
+
+    if (!formData.name.trim()) errors.name = 'El nombre es requerido';
+    if (formData.price <= 0) errors.price = 'El precio debe ser mayor a 0' as unknown as never;
+    if (!formData.description.trim()) errors.description = 'La descripción es requerida';
+    if (!formData.image.trim()) errors.image = 'La URL de imagen es requerida';
+    if (formData.stock < 0) errors.stock = 'El stock no puede ser negativo' as unknown as never;
+
+    setFormErrors(errors as Partial<CreateProductData>);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    setIsSubmitting(true);
+    try {
+      if (editingProduct) {
+        await apiService.updateProduct(editingProduct.id, formData);
+        showToast('Producto actualizado correctamente', 'success');
+      } else {
+        await apiService.createProduct(formData);
+        showToast('Producto creado correctamente', 'success');
+      }
+      closeModal();
+      loadProducts();
+    } catch {
+      showToast(
+        editingProduct ? 'Error al actualizar producto' : 'Error al crear producto',
+        'error'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    try {
+      await apiService.deleteProduct(id);
+      showToast('Producto desactivado', 'success');
+      setDeleteId(null);
+      loadProducts();
+    } catch {
+      showToast('Error al eliminar producto', 'error');
+    }
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/', { replace: true });
+  };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-cream-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-clay-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="font-sans text-sm text-stone-400">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) return null;
+
+  return (
+    <div className="min-h-screen bg-cream-50">
+      {/* Toasts */}
+      <div className="fixed top-4 right-4 z-50 space-y-2" aria-live="polite">
+        {toasts.map((toast) => (
+          <div
+            key={toast.id}
+            className={`flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg font-sans text-sm font-medium animate-fade-in ${
+              toast.type === 'success'
+                ? 'bg-green-50 text-green-700 border border-green-200'
+                : 'bg-red-50 text-red-700 border border-red-200'
+            }`}
+          >
+            {toast.type === 'success' ? '✓' : '✕'} {toast.message}
+          </div>
+        ))}
+      </div>
+
+      {/* Header */}
+      <header className="bg-white border-b border-stone-200 px-4 sm:px-8 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div>
+            <h1 className="font-serif text-xl font-semibold text-bark-800">
+              Panel Admin
+            </h1>
+            <p className="font-sans text-xs text-stone-400">{user?.email}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <a
+              href="/"
+              className="font-sans text-sm text-stone-500 hover:text-clay-600 transition-colors"
+            >
+              ← Ver tienda
+            </a>
+            <button
+              onClick={handleLogout}
+              className="font-sans text-sm text-stone-500 hover:text-clay-600 transition-colors"
+            >
+              Salir
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Main content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-8 py-8">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="font-serif text-2xl font-semibold text-bark-800">
+            Productos
+          </h2>
+          <button
+            onClick={openCreateModal}
+            className="flex items-center gap-2 bg-clay-500 hover:bg-clay-600 text-white font-sans text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-clay-400"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Nuevo producto
+          </button>
+        </div>
+
+        {/* Products table */}
+        {isLoading ? (
+          <div className="flex justify-center py-20">
+            <div className="w-8 h-8 border-2 border-clay-500 border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden">
+            {products.length === 0 ? (
+              <div className="text-center py-16">
+                <p className="font-serif text-lg text-stone-400">
+                  No hay productos. Creá uno nuevo.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-stone-100 bg-cream-50">
+                      <th className="text-left font-sans text-xs font-semibold text-stone-500 uppercase tracking-wider px-5 py-3">
+                        Producto
+                      </th>
+                      <th className="text-left font-sans text-xs font-semibold text-stone-500 uppercase tracking-wider px-5 py-3 hidden sm:table-cell">
+                        Categoría
+                      </th>
+                      <th className="text-left font-sans text-xs font-semibold text-stone-500 uppercase tracking-wider px-5 py-3">
+                        Precio
+                      </th>
+                      <th className="text-left font-sans text-xs font-semibold text-stone-500 uppercase tracking-wider px-5 py-3 hidden md:table-cell">
+                        Stock
+                      </th>
+                      <th className="text-left font-sans text-xs font-semibold text-stone-500 uppercase tracking-wider px-5 py-3 hidden lg:table-cell">
+                        Estado
+                      </th>
+                      <th className="px-5 py-3" />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {products.map((product) => (
+                      <tr
+                        key={product.id}
+                        className="border-b border-stone-50 hover:bg-cream-50 transition-colors"
+                      >
+                        <td className="px-5 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-cream-100 overflow-hidden flex-shrink-0">
+                              <img
+                                src={product.image}
+                                alt=""
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                              />
+                            </div>
+                            <div>
+                              <p className="font-sans text-sm font-medium text-bark-800 line-clamp-1">
+                                {product.name}
+                              </p>
+                              <p className="font-sans text-xs text-stone-400 line-clamp-1 hidden sm:block">
+                                {product.description.substring(0, 50)}...
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-5 py-4 hidden sm:table-cell">
+                          <span className="font-sans text-xs text-stone-600 bg-stone-100 px-2 py-0.5 rounded-full">
+                            {product.category}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4">
+                          <span className="font-serif text-sm font-medium text-clay-600">
+                            {formatPrice(product.price)}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4 hidden md:table-cell">
+                          <span
+                            className={`font-sans text-sm ${
+                              product.stock === 0
+                                ? 'text-red-500'
+                                : product.stock <= 3
+                                ? 'text-amber-600'
+                                : 'text-stone-600'
+                            }`}
+                          >
+                            {product.stock}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4 hidden lg:table-cell">
+                          <span
+                            className={`inline-flex items-center gap-1 font-sans text-xs px-2 py-0.5 rounded-full ${
+                              product.active
+                                ? 'bg-green-50 text-green-700'
+                                : 'bg-stone-100 text-stone-500'
+                            }`}
+                          >
+                            <span className={`w-1.5 h-1.5 rounded-full ${product.active ? 'bg-green-500' : 'bg-stone-400'}`} />
+                            {product.active ? 'Activo' : 'Inactivo'}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4">
+                          <div className="flex items-center gap-2 justify-end">
+                            <button
+                              onClick={() => openEditModal(product)}
+                              className="text-stone-400 hover:text-clay-600 transition-colors focus:outline-none"
+                              aria-label={`Editar ${product.name}`}
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => setDeleteId(product.id)}
+                              className="text-stone-400 hover:text-red-500 transition-colors focus:outline-none"
+                              aria-label={`Eliminar ${product.name}`}
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+      </main>
+
+      {/* Product Modal */}
+      {modalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-stone-900/50"
+            onClick={closeModal}
+            aria-hidden="true"
+          />
+          <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="px-6 py-5 border-b border-stone-100 flex items-center justify-between">
+              <h3 className="font-serif text-lg font-semibold text-bark-800">
+                {editingProduct ? 'Editar producto' : 'Nuevo producto'}
+              </h3>
+              <button
+                onClick={closeModal}
+                className="text-stone-400 hover:text-stone-600 transition-colors focus:outline-none"
+                aria-label="Cerrar modal"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
+              {/* Name */}
+              <div>
+                <label className="block font-sans text-xs font-semibold text-stone-600 uppercase tracking-wider mb-1.5">
+                  Nombre *
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="Taza Espresso Terracota"
+                  className="w-full px-3 py-2 border border-stone-200 rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-clay-300 focus:border-clay-300"
+                />
+                {formErrors.name && (
+                  <p className="font-sans text-xs text-red-500 mt-1">{formErrors.name}</p>
+                )}
+              </div>
+
+              {/* Price + Stock */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-sans text-xs font-semibold text-stone-600 uppercase tracking-wider mb-1.5">
+                    Precio (ARS) *
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formData.price || ''}
+                    onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                    placeholder="3500"
+                    className="w-full px-3 py-2 border border-stone-200 rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-clay-300"
+                  />
+                  {formErrors.price && (
+                    <p className="font-sans text-xs text-red-500 mt-1">{String(formErrors.price)}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="block font-sans text-xs font-semibold text-stone-600 uppercase tracking-wider mb-1.5">
+                    Stock *
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={formData.stock || ''}
+                    onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
+                    placeholder="10"
+                    className="w-full px-3 py-2 border border-stone-200 rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-clay-300"
+                  />
+                  {formErrors.stock && (
+                    <p className="font-sans text-xs text-red-500 mt-1">{String(formErrors.stock)}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Category */}
+              <div>
+                <label className="block font-sans text-xs font-semibold text-stone-600 uppercase tracking-wider mb-1.5">
+                  Categoría *
+                </label>
+                <select
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  className="w-full px-3 py-2 border border-stone-200 rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-clay-300 bg-white"
+                >
+                  {CATEGORIES.map((cat) => (
+                    <option key={cat.value} value={cat.value}>
+                      {cat.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block font-sans text-xs font-semibold text-stone-600 uppercase tracking-wider mb-1.5">
+                  Descripción *
+                </label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Descripción del producto..."
+                  rows={3}
+                  className="w-full px-3 py-2 border border-stone-200 rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-clay-300 resize-none"
+                />
+                {formErrors.description && (
+                  <p className="font-sans text-xs text-red-500 mt-1">{formErrors.description}</p>
+                )}
+              </div>
+
+              {/* Image URL */}
+              <div>
+                <label className="block font-sans text-xs font-semibold text-stone-600 uppercase tracking-wider mb-1.5">
+                  URL de imagen *
+                </label>
+                <input
+                  type="text"
+                  value={formData.image}
+                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                  placeholder="/images/producto-13.jpg"
+                  className="w-full px-3 py-2 border border-stone-200 rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-clay-300"
+                />
+                {formErrors.image && (
+                  <p className="font-sans text-xs text-red-500 mt-1">{formErrors.image}</p>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="flex-1 border border-stone-300 text-stone-600 hover:border-stone-400 font-sans text-sm font-medium py-2.5 rounded-xl transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-1 bg-clay-500 hover:bg-clay-600 disabled:bg-stone-300 text-white font-sans text-sm font-semibold py-2.5 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-clay-400"
+                >
+                  {isSubmitting
+                    ? 'Guardando...'
+                    : editingProduct
+                    ? 'Guardar cambios'
+                    : 'Crear producto'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirmation modal */}
+      {deleteId !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-stone-900/50"
+            onClick={() => setDeleteId(null)}
+            aria-hidden="true"
+          />
+          <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <h3 className="font-serif text-lg font-semibold text-bark-800 mb-2">
+              ¿Desactivar producto?
+            </h3>
+            <p className="font-sans text-sm text-stone-500 mb-5">
+              El producto se desactivará y no será visible en la tienda. Podés
+              reactivarlo editándolo.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteId(null)}
+                className="flex-1 border border-stone-300 text-stone-600 font-sans text-sm font-medium py-2.5 rounded-xl transition-colors hover:border-stone-400"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => handleDelete(deleteId)}
+                className="flex-1 bg-red-500 hover:bg-red-600 text-white font-sans text-sm font-semibold py-2.5 rounded-xl transition-colors"
+              >
+                Desactivar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

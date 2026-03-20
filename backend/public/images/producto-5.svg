@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <rect width="400" height="400" fill="#faf8f5"/>
+  <!-- Jarrón alto engobe blanco -->
+  <ellipse cx="200" cy="315" rx="55" ry="10" fill="#c4956a" opacity="0.3"/>
+  <!-- Cuerpo jarrón alto -->
+  <path d="M162 130 Q155 150 150 180 Q145 210 148 250 Q150 285 158 305 Q178 318 200 318 Q222 318 242 305 Q250 285 252 250 Q255 210 250 180 Q245 150 238 130 Z" fill="#d4845a"/>
+  <!-- Engobe blanco aplicado a mano -->
+  <path d="M162 130 Q175 125 200 123 Q225 125 238 130 Q230 160 220 190 Q210 220 205 250" stroke="white" stroke-width="18" fill="none" opacity="0.6" stroke-linecap="round"/>
+  <path d="M175 200 Q185 230 180 260" stroke="white" stroke-width="12" fill="none" opacity="0.4" stroke-linecap="round"/>
+  <!-- Boca jarrón -->
+  <ellipse cx="200" cy="130" rx="38" ry="9" fill="#c4713a"/>
+  <ellipse cx="200" cy="128" rx="32" ry="7" fill="#8b4513"/>
+  <!-- Textura áspera exterior -->
+  <path d="M155 200 Q175 196 200 198 Q225 196 245 200" stroke="#b05a28" stroke-width="1" fill="none" opacity="0.3"/>
+  <text x="200" y="360" text-anchor="middle" font-family="Georgia, serif" font-size="14" fill="#8b6343" opacity="0.8">Jarrón Alto Engobe Blanco</text>
+</svg>

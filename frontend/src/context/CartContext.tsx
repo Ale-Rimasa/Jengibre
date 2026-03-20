@@ -1,0 +1,151 @@
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  useEffect,
+  ReactNode,
+} from 'react';
+import { CartItem, Product } from '../types';
+
+interface CartState {
+  items: CartItem[];
+}
+
+type CartAction =
+  | { type: 'ADD_ITEM'; payload: Product }
+  | { type: 'REMOVE_ITEM'; payload: number }
+  | { type: 'UPDATE_QUANTITY'; payload: { id: number; quantity: number } }
+  | { type: 'CLEAR_CART' }
+  | { type: 'LOAD_CART'; payload: CartItem[] };
+
+interface CartContextValue {
+  items: CartItem[];
+  totalItems: number;
+  totalPrice: number;
+  addToCart: (product: Product) => void;
+  removeFromCart: (id: number) => void;
+  updateQuantity: (id: number, quantity: number) => void;
+  clearCart: () => void;
+}
+
+const STORAGE_KEY = 'jengibre_cart';
+
+function cartReducer(state: CartState, action: CartAction): CartState {
+  switch (action.type) {
+    case 'ADD_ITEM': {
+      const existing = state.items.find((item) => item.id === action.payload.id);
+      if (existing) {
+        return {
+          items: state.items.map((item) =>
+            item.id === action.payload.id
+              ? { ...item, quantity: item.quantity + 1 }
+              : item
+          ),
+        };
+      }
+      return {
+        items: [...state.items, { ...action.payload, quantity: 1 }],
+      };
+    }
+
+    case 'REMOVE_ITEM':
+      return {
+        items: state.items.filter((item) => item.id !== action.payload),
+      };
+
+    case 'UPDATE_QUANTITY': {
+      if (action.payload.quantity <= 0) {
+        return {
+          items: state.items.filter((item) => item.id !== action.payload.id),
+        };
+      }
+      return {
+        items: state.items.map((item) =>
+          item.id === action.payload.id
+            ? { ...item, quantity: action.payload.quantity }
+            : item
+        ),
+      };
+    }
+
+    case 'CLEAR_CART':
+      return { items: [] };
+
+    case 'LOAD_CART':
+      return { items: action.payload };
+
+    default:
+      return state;
+  }
+}
+
+const CartContext = createContext<CartContextValue | undefined>(undefined);
+
+export function CartProvider({ children }: { children: ReactNode }) {
+  const [state, dispatch] = useReducer(cartReducer, { items: [] });
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored) as CartItem[];
+        if (Array.isArray(parsed)) {
+          dispatch({ type: 'LOAD_CART', payload: parsed });
+        }
+      }
+    } catch {
+      // Ignore parse errors
+    }
+  }, []);
+
+  // Persist to localStorage on changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.items));
+    } catch {
+      // Ignore storage errors
+    }
+  }, [state.items]);
+
+  const totalItems = state.items.reduce((sum, item) => sum + item.quantity, 0);
+  const totalPrice = state.items.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
+
+  const addToCart = (product: Product) =>
+    dispatch({ type: 'ADD_ITEM', payload: product });
+
+  const removeFromCart = (id: number) =>
+    dispatch({ type: 'REMOVE_ITEM', payload: id });
+
+  const updateQuantity = (id: number, quantity: number) =>
+    dispatch({ type: 'UPDATE_QUANTITY', payload: { id, quantity } });
+
+  const clearCart = () => dispatch({ type: 'CLEAR_CART' });
+
+  return (
+    <CartContext.Provider
+      value={{
+        items: state.items,
+        totalItems,
+        totalPrice,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+      }}
+    >
+      {children}
+    </CartContext.Provider>
+  );
+}
+
+export function useCart(): CartContextValue {
+  const context = useContext(CartContext);
+  if (!context) {
+    throw new Error('useCart must be used within a CartProvider');
+  }
+  return context;
+}
