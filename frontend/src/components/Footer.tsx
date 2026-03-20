@@ -12,7 +12,7 @@ export default function Footer() {
           <div>
             <div className="flex items-center gap-2 mb-3">
               <img
-                src="/logo.png"
+                src="/Logo.png"
                 alt="Jengibre Cerámicas"
                 className="h-14 w-auto object-contain rounded-xl bg-white/10 p-1"
                 onError={(e) => {

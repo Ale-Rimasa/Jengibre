@@ -21,7 +21,7 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
             aria-label="Jengibre Cerámicas - Inicio"
           >
             <img
-              src="/logo.png"
+              src="/Logo.png"
               alt="Jengibre Cerámicas"
               className="h-10 w-auto object-contain group-hover:opacity-90 transition-opacity"
               onError={(e) => {
