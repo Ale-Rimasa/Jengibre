@@ -41,5 +41,5 @@ COPY public ./public
 
 EXPOSE 3001
 
-# Run migrations then start server
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/app.js"]
+# Resolve any failed migration record, then apply pending migrations, then start
+CMD ["sh", "-c", "npx prisma migrate resolve --rolled-back 20260320200000_add_product_images 2>/dev/null; npx prisma migrate deploy && node dist/app.js"]
