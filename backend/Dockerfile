@@ -1,6 +1,9 @@
 # ── Stage 1: Build TypeScript ──────────────────────────────────────────────────
 FROM node:20-alpine AS builder
 
+# OpenSSL required by Prisma on Alpine
+RUN apk add --no-cache openssl
+
 WORKDIR /app
 
 COPY package*.json ./
@@ -16,6 +19,9 @@ RUN npx prisma generate
 
 # ── Stage 2: Production image ──────────────────────────────────────────────────
 FROM node:20-alpine AS runner
+
+# OpenSSL required by Prisma on Alpine
+RUN apk add --no-cache openssl
 
 WORKDIR /app
 
