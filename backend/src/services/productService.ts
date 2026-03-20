@@ -15,6 +15,7 @@ export interface CreateProductData {
   description: string;
   image: string;
   stock: number;
+  images?: string[];
 }
 
 export interface UpdateProductData {
@@ -25,6 +26,7 @@ export interface UpdateProductData {
   image?: string;
   stock?: number;
   active?: boolean;
+  images?: string[];
 }
 
 export const productService = {
@@ -76,6 +78,7 @@ export const productService = {
         description: data.description,
         image: data.image,
         stock: data.stock,
+        images: data.images ?? [],
         active: true,
       },
     });

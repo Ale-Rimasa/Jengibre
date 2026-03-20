@@ -2,15 +2,6 @@ import { Request, Response, NextFunction } from 'express';
 import { body } from 'express-validator';
 import { productService } from '../services/productService';
 
-const VALID_CATEGORIES = [
-  'tazas',
-  'platos',
-  'decoracion',
-  'bowls',
-  'jarrones',
-  'set_vajilla',
-];
-
 // Validation rules for creating/updating products
 export const productValidation = [
   body('name')
@@ -23,8 +14,9 @@ export const productValidation = [
     .isFloat({ min: 0 })
     .withMessage('Price must be a positive number'),
   body('category')
-    .isIn(VALID_CATEGORIES)
-    .withMessage(`Category must be one of: ${VALID_CATEGORIES.join(', ')}`),
+    .trim()
+    .notEmpty()
+    .withMessage('Category is required'),
   body('description')
     .trim()
     .notEmpty()
@@ -51,8 +43,9 @@ export const productUpdateValidation = [
     .withMessage('Price must be a positive number'),
   body('category')
     .optional()
-    .isIn(VALID_CATEGORIES)
-    .withMessage(`Category must be one of: ${VALID_CATEGORIES.join(', ')}`),
+    .trim()
+    .notEmpty()
+    .withMessage('Category cannot be empty'),
   body('description')
     .optional()
     .trim()
@@ -107,7 +100,7 @@ export const productController = {
 
   async create(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { name, price, category, description, image, stock } = req.body;
+      const { name, price, category, description, image, stock, images } = req.body;
 
       const product = await productService.create({
         name,
@@ -116,6 +109,7 @@ export const productController = {
         description,
         image,
         stock: parseInt(stock, 10),
+        images: Array.isArray(images) ? images : [],
       });
 
       res.status(201).json({ product, message: 'Product created successfully' });
@@ -133,7 +127,7 @@ export const productController = {
         return;
       }
 
-      const { name, price, category, description, image, stock, active } =
+      const { name, price, category, description, image, stock, active, images } =
         req.body;
 
       const updateData: Record<string, unknown> = {};
@@ -144,6 +138,7 @@ export const productController = {
       if (image !== undefined) updateData.image = image;
       if (stock !== undefined) updateData.stock = parseInt(stock, 10);
       if (active !== undefined) updateData.active = active;
+      if (images !== undefined) updateData.images = Array.isArray(images) ? images : [];
 
       const product = await productService.update(id, updateData);
       res.status(200).json({ product, message: 'Product updated successfully' });

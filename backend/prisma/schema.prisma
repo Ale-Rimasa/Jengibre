@@ -37,7 +37,7 @@ model Product {
   category    String
   description String
   image       String
-  images      Json        @default("[]")
+  images      String[]    @default([])
   stock       Int         @default(0)
   active      Boolean     @default(true)
   createdAt   DateTime    @default(now())

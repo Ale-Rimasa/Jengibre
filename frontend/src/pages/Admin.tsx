@@ -61,6 +61,9 @@ export default function Admin() {
   const [imageError, setImageError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [extraImages, setExtraImages] = useState<string[]>([]);
+  const [isUploadingExtra, setIsUploadingExtra] = useState(false);
+  const extraFileInputRef = useRef<HTMLInputElement>(null);
 
   // ── Orders ────────────────────────────────────────────────
   const [orders, setOrders] = useState<Order[]>([]);
@@ -147,6 +150,7 @@ export default function Admin() {
     setFormErrors({});
     setImagePreview('');
     setImageError('');
+    setExtraImages([]);
     setModalOpen(true);
   };
 
@@ -163,6 +167,7 @@ export default function Admin() {
     setImagePreview(product.image || '');
     setImageError('');
     setFormErrors({});
+    setExtraImages(product.images || []);
     setModalOpen(true);
   };
 
@@ -173,6 +178,7 @@ export default function Admin() {
     setFormErrors({});
     setImagePreview('');
     setImageError('');
+    setExtraImages([]);
   };
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -204,6 +210,30 @@ export default function Admin() {
     }
   };
 
+  const handleExtraImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (extraImages.length >= 5) return;
+    setIsUploadingExtra(true);
+    try {
+      const data = new FormData();
+      data.append('image', file);
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        credentials: 'include',
+        body: data,
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Error al subir imagen');
+      setExtraImages((prev) => [...prev, result.url]);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Error al subir imagen', 'error');
+    } finally {
+      setIsUploadingExtra(false);
+      if (extraFileInputRef.current) extraFileInputRef.current.value = '';
+    }
+  };
+
   const validateForm = (): boolean => {
     const errors: Partial<Record<keyof CreateProductData, string>> = {};
     if (!formData.name.trim()) errors.name = 'El nombre es requerido';
@@ -221,10 +251,10 @@ export default function Admin() {
     setIsSubmitting(true);
     try {
       if (editingProduct) {
-        await apiService.updateProduct(editingProduct.id, formData);
+        await apiService.updateProduct(editingProduct.id, { ...formData, images: extraImages });
         showToast('Producto actualizado correctamente', 'success');
       } else {
-        await apiService.createProduct(formData);
+        await apiService.createProduct({ ...formData, images: extraImages });
         showToast('Producto creado correctamente', 'success');
       }
       closeModal();
@@ -841,6 +871,59 @@ export default function Admin() {
                 {(imageError || formErrors.image) && (
                   <p className="font-sans text-xs text-red-500 mt-1">{imageError || formErrors.image}</p>
                 )}
+              </div>
+
+              {/* Additional Images */}
+              <div>
+                <label className="block font-sans text-xs font-semibold text-stone-600 uppercase tracking-wider mb-1.5">
+                  Imágenes adicionales
+                  <span className="font-normal normal-case text-stone-400 ml-1">(hasta 5)</span>
+                </label>
+
+                {extraImages.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {extraImages.map((url, idx) => (
+                      <div key={idx} className="relative w-16 h-16 rounded-lg overflow-hidden border border-stone-200 group/thumb">
+                        <img src={url} alt={`Extra ${idx + 1}`} className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setExtraImages((prev) => prev.filter((_, i) => i !== idx))}
+                          className="absolute inset-0 bg-stone-900/50 text-white opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center text-lg font-bold"
+                          aria-label="Eliminar imagen"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {extraImages.length < 5 && (
+                  <div
+                    onClick={() => extraFileInputRef.current?.click()}
+                    className={`w-full border-2 border-dashed rounded-lg px-4 py-3 text-center cursor-pointer transition-colors ${
+                      isUploadingExtra
+                        ? 'border-clay-300 bg-clay-50'
+                        : 'border-stone-200 hover:border-clay-300 hover:bg-cream-50'
+                    }`}
+                  >
+                    {isUploadingExtra ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="w-4 h-4 border-2 border-clay-500 border-t-transparent rounded-full animate-spin" />
+                        <span className="font-sans text-sm text-clay-600">Subiendo...</span>
+                      </div>
+                    ) : (
+                      <p className="font-sans text-sm text-stone-500">+ Agregar imagen ({extraImages.length}/5)</p>
+                    )}
+                  </div>
+                )}
+                <input
+                  ref={extraFileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleExtraImageChange}
+                  className="hidden"
+                />
               </div>
 
               {/* Actions */}

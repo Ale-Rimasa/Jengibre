@@ -51,6 +51,11 @@ export default function ProductDetail() {
   const [imgError, setImgError] = useState(false);
   const [added, setAdded] = useState(false);
   const [notFound, setNotFound] = useState(false);
+  const [selectedIdx, setSelectedIdx] = useState(0);
+
+  useEffect(() => {
+    if (selectedIdx !== undefined) setImgError(false);
+  }, [selectedIdx]);
 
   useEffect(() => {
     if (!id) return;
@@ -58,7 +63,10 @@ export default function ProductDetail() {
     setNotFound(false);
     apiService
       .getProduct(Number(id))
-      .then((data) => setProduct(data.product))
+      .then((data) => {
+        setProduct(data.product);
+        setSelectedIdx(0);
+      })
       .catch((err: unknown) => {
         const status =
           err && typeof err === 'object' && 'response' in err
@@ -96,6 +104,8 @@ export default function ProductDetail() {
   const stockStatus =
     product.stock === 0 ? 'out' : product.stock <= 3 ? 'low' : 'ok';
 
+  const allImages = [product.image, ...(product.images || [])].filter(Boolean);
+
   return (
     <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       {/* Back button */}
@@ -116,52 +126,70 @@ export default function ProductDetail() {
       </button>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
-        {/* ── Image ── */}
-        <div className="relative aspect-square rounded-2xl overflow-hidden bg-cream-100 border border-stone-100 shadow-sm">
-          {!imgError ? (
-            <img
-              src={product.image}
-              alt={product.name}
-              className={`w-full h-full object-cover transition-all duration-700 hover:scale-105 ${
-                stockStatus === 'out' ? 'grayscale opacity-60' : ''
-              }`}
-              onError={() => setImgError(true)}
-            />
-          ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center text-stone-300">
-              <svg
-                className="w-20 h-20 mb-3"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1}
-                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-              <span className="font-sans text-sm">Sin imagen</span>
+        {/* ── Image Gallery ── */}
+        <div className="flex gap-3">
+          {/* Thumbnails (only show if more than 1 image) */}
+          {allImages.length > 1 && (
+            <div className="flex flex-col gap-2 w-[72px] flex-shrink-0">
+              {allImages.map((url, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setSelectedIdx(idx)}
+                  className={`relative w-full aspect-square rounded-xl overflow-hidden border-2 transition-all duration-200 focus:outline-none ${
+                    selectedIdx === idx
+                      ? 'border-clay-500 shadow-sm'
+                      : 'border-transparent hover:border-stone-300'
+                  }`}
+                  aria-label={`Ver imagen ${idx + 1}`}
+                >
+                  <img
+                    src={url}
+                    alt={`Vista ${idx + 1}`}
+                    className="w-full h-full object-cover"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                </button>
+              ))}
             </div>
           )}
 
-          {/* Out of stock overlay */}
-          {stockStatus === 'out' && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="bg-white/90 backdrop-blur-sm text-stone-600 text-sm font-sans font-semibold px-5 py-2.5 rounded-full border border-stone-200 shadow-sm">
-                Sin stock
+          {/* Main image */}
+          <div className={`relative aspect-square rounded-2xl overflow-hidden bg-cream-100 border border-stone-100 shadow-sm ${allImages.length > 1 ? 'flex-1' : 'w-full'}`}>
+            {!imgError ? (
+              <img
+                key={selectedIdx}
+                src={allImages[selectedIdx] || product.image}
+                alt={product.name}
+                className={`w-full h-full object-cover transition-all duration-700 hover:scale-105 animate-fade-in ${
+                  stockStatus === 'out' ? 'grayscale opacity-60' : ''
+                }`}
+                onError={() => setImgError(true)}
+              />
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center text-stone-300">
+                <svg className="w-20 h-20 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span className="font-sans text-sm">Sin imagen</span>
+              </div>
+            )}
+
+            {/* Out of stock overlay */}
+            {stockStatus === 'out' && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="bg-white/90 backdrop-blur-sm text-stone-600 text-sm font-sans font-semibold px-5 py-2.5 rounded-full border border-stone-200 shadow-sm">
+                  Sin stock
+                </span>
+              </div>
+            )}
+
+            {/* Low stock badge */}
+            {stockStatus === 'low' && (
+              <span className="absolute top-3 right-3 bg-clay-500 text-white text-xs font-sans font-semibold px-3 py-1.5 rounded-full shadow-sm">
+                ¡Últimas {product.stock}!
               </span>
-            </div>
-          )}
-
-          {/* Low stock badge */}
-          {stockStatus === 'low' && (
-            <span className="absolute top-3 right-3 bg-clay-500 text-white text-xs font-sans font-semibold px-3 py-1.5 rounded-full shadow-sm">
-              ¡Últimas {product.stock}!
-            </span>
-          )}
+            )}
+          </div>
         </div>
 
         {/* ── Info ── */}
