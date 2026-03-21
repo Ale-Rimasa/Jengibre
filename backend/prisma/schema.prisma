@@ -54,6 +54,7 @@ model Order {
   customerEmail   String?
   customerAddress String?
   notes           String?
+  paymentMethod   String      @default("transfer")
   total           Float
   status          String      @default("pending")
   items           OrderItem[]

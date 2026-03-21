@@ -19,18 +19,31 @@ const EMPTY_FORM: CheckoutForm = { name: '', phone: '', email: '', address: '', 
 type Step = 'cart' | 'checkout' | 'success';
 
 const WHATSAPP_NUMBER = (import.meta as unknown as { env: Record<string, string> }).env.VITE_WHATSAPP_NUMBER || '5491132565412';
+const BANK_ALIAS = 'FERVOR.ABEJA.PISO';
+const BANK_HOLDER = 'Maria Cecilia Legaspe';
+
+type PaymentMethod = 'transfer' | 'cash';
 
 function formatPrice(price: number): string {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(price);
 }
 
-function buildWhatsAppMessage(items: Array<{ name: string; quantity: number; price: number; preorder?: boolean }>, total: number, form: CheckoutForm): string {
+function buildWhatsAppMessage(
+  items: Array<{ name: string; quantity: number; price: number; preorder?: boolean }>,
+  total: number,
+  form: CheckoutForm,
+  paymentMethod: PaymentMethod
+): string {
   const hasPreorder = items.some(i => i.preorder);
+  const paymentLine = paymentMethod === 'transfer'
+    ? `💳 *Forma de pago:* Transferencia bancaria (alias: ${BANK_ALIAS})`
+    : '💵 *Forma de pago:* Efectivo en mano';
   const lines = [
     '🌿 *Hola! Quisiera hacer un pedido en Jengibre Cerámicas*', '',
     '🛍️ *Productos:*',
     ...items.map(i => `• ${i.name} x${i.quantity} — ${formatPrice(i.price * i.quantity)}${i.preorder ? ' _(encargo ~25 días)_' : ''}`),
     '', `💰 *Total: ${formatPrice(total)}*`, '',
+    paymentLine, '',
     ...(hasPreorder ? ['⏳ *Nota:* Uno o más productos son por encargo y pueden demorar hasta 25 días hábiles.', ''] : []),
     '👤 *Mis datos:*',
     `Nombre: ${form.name}`,
@@ -48,10 +61,12 @@ export default function Cart({ isOpen, onClose }: CartProps) {
   const [step, setStep] = useState<Step>('cart');
   const [form, setForm] = useState<CheckoutForm>(EMPTY_FORM);
   const [errors, setErrors] = useState<Partial<CheckoutForm>>({});
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('transfer');
+  const [aliasCopied, setAliasCopied] = useState(false);
 
   useEffect(() => {
     if (!isOpen) {
-      const t = setTimeout(() => { setStep('cart'); setForm(EMPTY_FORM); setErrors({}); }, 300);
+      const t = setTimeout(() => { setStep('cart'); setForm(EMPTY_FORM); setErrors({}); setPaymentMethod('transfer'); setAliasCopied(false); }, 300);
       return () => clearTimeout(t);
     }
   }, [isOpen]);
@@ -84,10 +99,10 @@ export default function Cart({ isOpen, onClose }: CartProps) {
     if (!validate()) return;
 
     // Open WhatsApp
-    const msg = buildWhatsAppMessage(items, totalPrice, form);
+    const msg = buildWhatsAppMessage(items, totalPrice, form, paymentMethod);
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
 
-    // Save order to database (non-blocking)
+    // Save order to database + trigger emails (non-blocking)
     try {
       await fetch('/api/orders', {
         method: 'POST',
@@ -99,6 +114,7 @@ export default function Cart({ isOpen, onClose }: CartProps) {
           customerEmail: form.email || undefined,
           customerAddress: form.address || undefined,
           notes: form.notes || undefined,
+          paymentMethod,
           total: totalPrice,
           items: items.map(item => ({
             productId: item.id,
@@ -225,6 +241,85 @@ export default function Cart({ isOpen, onClose }: CartProps) {
                 <label className="block font-sans text-xs font-semibold text-stone-600 uppercase tracking-wider mb-1.5">Notas <span className="text-stone-400 normal-case font-normal">(opcional)</span></label>
                 <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="Envío a domicilio, regalo, color preferido..." rows={2} className="w-full px-3 py-2.5 border border-stone-200 rounded-lg font-sans text-sm focus:outline-none focus:ring-2 focus:ring-clay-300 bg-white resize-none" />
               </div>
+              {/* Payment method */}
+              <div>
+                <label className="block font-sans text-xs font-semibold text-stone-600 uppercase tracking-wider mb-2">
+                  Forma de pago *
+                </label>
+                <div className="space-y-2">
+                  {/* Transfer option */}
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('transfer')}
+                    className={`w-full text-left border rounded-xl px-4 py-3 transition-all ${
+                      paymentMethod === 'transfer'
+                        ? 'border-clay-400 bg-clay-50 ring-1 ring-clay-300'
+                        : 'border-stone-200 bg-white hover:border-stone-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="text-base">💳</span>
+                      <span className="font-sans text-sm font-semibold text-bark-800">Transferencia bancaria</span>
+                      {paymentMethod === 'transfer' && (
+                        <span className="ml-auto w-4 h-4 rounded-full bg-clay-500 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7"/></svg>
+                        </span>
+                      )}
+                    </div>
+                    {paymentMethod === 'transfer' && (
+                      <div className="mt-2 pt-2 border-t border-clay-200">
+                        <div className="flex items-center justify-between mb-1">
+                          <div>
+                            <p className="font-sans text-xs text-stone-500">Alias</p>
+                            <p className="font-mono text-sm font-bold text-bark-800">{BANK_ALIAS}</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigator.clipboard.writeText(BANK_ALIAS);
+                              setAliasCopied(true);
+                              setTimeout(() => setAliasCopied(false), 2000);
+                            }}
+                            className="font-sans text-xs text-clay-600 border border-clay-300 rounded-lg px-2 py-1 hover:bg-clay-50 transition-colors flex-shrink-0"
+                          >
+                            {aliasCopied ? '✓ Copiado' : 'Copiar'}
+                          </button>
+                        </div>
+                        <p className="font-sans text-xs text-stone-500">Titular: <span className="text-stone-700">{BANK_HOLDER}</span></p>
+                        <p className="font-sans text-xs text-amber-700 mt-1.5 bg-amber-50 rounded-lg px-2 py-1">Envianos el comprobante por WhatsApp al confirmar el pedido.</p>
+                      </div>
+                    )}
+                  </button>
+
+                  {/* Cash option */}
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('cash')}
+                    className={`w-full text-left border rounded-xl px-4 py-3 transition-all ${
+                      paymentMethod === 'cash'
+                        ? 'border-clay-400 bg-clay-50 ring-1 ring-clay-300'
+                        : 'border-stone-200 bg-white hover:border-stone-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">💵</span>
+                      <span className="font-sans text-sm font-semibold text-bark-800">Efectivo en mano</span>
+                      {paymentMethod === 'cash' && (
+                        <span className="ml-auto w-4 h-4 rounded-full bg-clay-500 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7"/></svg>
+                        </span>
+                      )}
+                    </div>
+                    {paymentMethod === 'cash' && (
+                      <p className="font-sans text-xs text-stone-500 mt-1.5 pt-2 border-t border-clay-200">
+                        Coordinamos el pago al momento de la entrega o retiro.
+                      </p>
+                    )}
+                  </button>
+                </div>
+              </div>
+
               <div className="flex items-start gap-2 bg-green-50 border border-green-100 rounded-lg px-3 py-2.5">
                 <WhatsAppIcon />
                 <p className="font-sans text-xs text-green-700">Al confirmar se abrirá WhatsApp con el resumen de tu pedido listo para enviar.</p>

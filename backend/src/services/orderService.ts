@@ -8,6 +8,7 @@ export interface CreateOrderData {
   customerEmail?: string;
   customerAddress?: string;
   notes?: string;
+  paymentMethod?: string;
   total: number;
   items: {
     productId?: number;
@@ -28,6 +29,7 @@ export const orderService = {
         customerEmail: data.customerEmail,
         customerAddress: data.customerAddress,
         notes: data.notes,
+        paymentMethod: data.paymentMethod ?? 'transfer',
         total: data.total,
         status: 'pending',
         items: {

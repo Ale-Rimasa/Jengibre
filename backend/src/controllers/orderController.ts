@@ -1,10 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { orderService, CreateOrderData } from '../services/orderService';
+import { emailService } from '../services/emailService';
 
 export const orderController = {
   async create(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { customerName, customerPhone, customerEmail, customerAddress, notes, total, items } = req.body;
+      const { customerName, customerPhone, customerEmail, customerAddress, notes, total, items, paymentMethod } = req.body;
 
       if (!customerName || !customerPhone || !total || !items?.length) {
         res.status(400).json({ error: 'Missing required order fields' });
@@ -17,6 +18,7 @@ export const orderController = {
         customerEmail: customerEmail ? String(customerEmail).trim() : undefined,
         customerAddress: customerAddress ? String(customerAddress).trim() : undefined,
         notes: notes ? String(notes).trim() : undefined,
+        paymentMethod: paymentMethod === 'cash' ? 'cash' : 'transfer',
         total: Number(total),
         items: items.map((item: Record<string, unknown>) => ({
           productId: item.productId ? Number(item.productId) : undefined,
@@ -30,6 +32,28 @@ export const orderController = {
 
       const order = await orderService.create(orderData);
       res.status(201).json({ order, message: 'Order created successfully' });
+
+      // Send emails non-blocking (after response is sent)
+      const emailOrder = {
+        id: order.id,
+        customerName: order.customerName,
+        customerPhone: order.customerPhone,
+        customerEmail: order.customerEmail,
+        customerAddress: order.customerAddress,
+        notes: order.notes,
+        paymentMethod: order.paymentMethod,
+        total: order.total,
+        items: order.items.map(i => ({
+          productName: i.productName,
+          quantity: i.quantity,
+          price: i.price,
+          subtotal: i.subtotal,
+        })),
+      };
+
+      emailService.sendOrderConfirmation(emailOrder).catch(() => {});
+      emailService.sendAdminNotification(emailOrder).catch(() => {});
+
     } catch (err) {
       next(err);
     }
