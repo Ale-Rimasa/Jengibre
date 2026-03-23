@@ -22,6 +22,9 @@ api.interceptors.response.use(
 
 export interface ProductsResponse {
   products: Product[];
+  total?: number;
+  page?: number;
+  totalPages?: number;
 }
 
 export interface ProductResponse {
@@ -43,12 +46,20 @@ export type UpdateProductData = Partial<CreateProductData & { active: boolean }>
 
 export const apiService = {
   // Products
-  async getProducts(search?: string, category?: string): Promise<ProductsResponse> {
+  async getProducts(search?: string, category?: string, page = 1): Promise<ProductsResponse> {
     const params: Record<string, string> = {};
     if (search) params.search = search;
     if (category && category !== 'todas') params.category = category;
+    params.page = String(page);
+    params.limit = '12';
 
     const response = await api.get<ProductsResponse>('/products', { params });
+    return response.data;
+  },
+
+  async getRelatedProducts(category: string, excludeId: number, limit = 4): Promise<{ products: Product[] }> {
+    const params = { category, excludeId: String(excludeId), limit: String(limit) };
+    const response = await api.get<{ products: Product[] }>('/products', { params });
     return response.data;
   },
 

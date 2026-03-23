@@ -67,16 +67,19 @@ export const productUpdateValidation = [
 export const productController = {
   async getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { search, category } = req.query;
+      const { search, category, excludeId, page, limit } = req.query;
       const isAdmin = !!req.user;
 
-      const products = await productService.getAll({
+      const result = await productService.getAll({
         search: typeof search === 'string' ? search : undefined,
         category: typeof category === 'string' ? category : undefined,
         includeInactive: isAdmin,
+        excludeId: excludeId ? parseInt(excludeId as string, 10) : undefined,
+        page: page ? Math.max(1, parseInt(page as string, 10)) : 1,
+        limit: limit ? Math.min(50, parseInt(limit as string, 10)) : 12,
       });
 
-      res.status(200).json({ products });
+      res.status(200).json(result);
     } catch (err) {
       next(err);
     }

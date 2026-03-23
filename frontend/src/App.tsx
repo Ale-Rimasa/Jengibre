@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
@@ -11,6 +12,7 @@ import Login from './pages/Login';
 import Admin from './pages/Admin';
 import AboutUs from './pages/AboutUs';
 import ProductDetail from './pages/ProductDetail';
+import NotFound from './pages/NotFound';
 
 function AppLayout() {
   const [cartOpen, setCartOpen] = useState(false);
@@ -27,6 +29,7 @@ function AppLayout() {
         <Route path="/admin" element={<Admin />} />
         <Route path="/nosotros" element={<AboutUs />} />
         <Route path="/producto/:id" element={<ProductDetail />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
 
       <Footer />
@@ -36,14 +39,16 @@ function AppLayout() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <CartProvider>
-          <div className="flex flex-col min-h-screen bg-cream-50">
-            <AppLayout />
-          </div>
-        </CartProvider>
-      </AuthProvider>
-    </BrowserRouter>
+    <HelmetProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <CartProvider>
+            <div className="flex flex-col min-h-screen bg-cream-50">
+              <AppLayout />
+            </div>
+          </CartProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </HelmetProvider>
   );
 }

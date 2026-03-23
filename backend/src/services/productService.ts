@@ -6,6 +6,9 @@ export interface ProductFilters {
   search?: string;
   category?: string;
   includeInactive?: boolean;
+  excludeId?: number;
+  page?: number;
+  limit?: number;
 }
 
 export interface CreateProductData {
@@ -31,21 +34,21 @@ export interface UpdateProductData {
 
 export const productService = {
   async getAll(filters: ProductFilters = {}) {
-    const { search, category, includeInactive = false } = filters;
+    const {
+      search,
+      category,
+      includeInactive = false,
+      excludeId,
+      page = 1,
+      limit = 12,
+    } = filters;
 
     const where: Record<string, unknown> = {};
 
-    // Only show active products unless admin requests all
-    if (!includeInactive) {
-      where.active = true;
-    }
+    if (!includeInactive) where.active = true;
+    if (category && category !== 'todas') where.category = category;
+    if (excludeId) where.id = { not: excludeId };
 
-    // Category filter
-    if (category && category !== 'todas') {
-      where.category = category;
-    }
-
-    // Search filter (case insensitive on name and description)
     if (search && search.trim()) {
       where.OR = [
         { name: { contains: search.trim(), mode: 'insensitive' } },
@@ -53,10 +56,22 @@ export const productService = {
       ];
     }
 
-    return prisma.product.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-    });
+    const [products, total] = await prisma.$transaction([
+      prisma.product.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.product.count({ where }),
+    ]);
+
+    return {
+      products,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    };
   },
 
   async getById(id: number) {

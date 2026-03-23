@@ -1,8 +1,15 @@
 import React from 'react';
+import { Helmet } from 'react-helmet-async';
 
 export default function AboutUs() {
   return (
     <main className="flex-1">
+      <Helmet>
+        <title>Nosotros | Jengibre Cerámicas</title>
+        <meta name="description" content="Conocé la historia detrás de Jengibre Cerámicas. Piezas artesanales hechas a mano con arcilla local y amor en Buenos Aires." />
+        <meta property="og:title" content="Nosotros | Jengibre Cerámicas" />
+        <meta property="og:url" content="https://jengibreaqua.com/nosotros" />
+      </Helmet>
       {/* Hero */}
       <section className="bg-warm-gradient py-16 px-4 text-center border-b border-stone-100">
         <p className="font-sans text-xs font-semibold tracking-[0.2em] text-clay-500 uppercase mb-3">
